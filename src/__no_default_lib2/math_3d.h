@@ -73,7 +73,6 @@ v1.0  2016-02-15  Initial release
 
 #ifndef MATH_3D_HEADER
 #define MATH_3D_HEADER
-
 #include <math.h>
 #include "lmath.h"
 
@@ -274,9 +273,9 @@ static inline mat4_t m4_scaling(vec3_t scale) {
 }
 
 static inline mat4_t m4_rotation_x(float angle_in_rad) {
-	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
-	float s, c;
-	lsincosf(angle_in_rad, &s, &c);
+	float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
+	/*float s, c;
+	lsincosf(angle_in_rad, &s, &c);*/
 	return mat4(
 		1, 0, 0, 0,
 		0, c, -s, 0,
@@ -286,9 +285,9 @@ static inline mat4_t m4_rotation_x(float angle_in_rad) {
 }
 
 static inline mat4_t m4_rotation_y(float angle_in_rad) {
-	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
-	float s, c;
-	lsincosf(angle_in_rad, &s, &c);
+	float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
+	/*float s, c;
+	lsincosf(angle_in_rad, &s, &c);*/
 	return mat4(
 		c, 0, s, 0,
 		0, 1, 0, 0,
@@ -298,9 +297,9 @@ static inline mat4_t m4_rotation_y(float angle_in_rad) {
 }
 
 static inline mat4_t m4_rotation_z(float angle_in_rad) {
-	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
-	float s, c;
-	lsincosf(angle_in_rad, &s, &c);
+	float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
+	/*float s, c;
+	lsincosf(angle_in_rad, &s, &c);*/
 	return mat4(
 		c, -s, 0, 0,
 		s, c, 0, 0,
@@ -360,7 +359,9 @@ static inline mat4_t m4_mul(mat4_t a, mat4_t b) {
 mat4_t m4_rotation(float angle_in_rad, vec3_t axis) {
 	vec3_t normalized_axis = v3_norm(axis);
 	float x = normalized_axis.x, y = normalized_axis.y, z = normalized_axis.z;
-	float c = cosf(angle_in_rad), s = sinf(angle_in_rad);
+	//float c = cosf(angle_in_rad), s = sinf(angle_in_rad);
+	float s, c;
+	lsincosf(angle_in_rad, &s, &c);
 
 	return mat4(
 		c + x*x*(1 - c), x*y*(1 - c) - z*s, x*z*(1 - c) + y*s, 0,

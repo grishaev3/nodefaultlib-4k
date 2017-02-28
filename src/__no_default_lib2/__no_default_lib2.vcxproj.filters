@@ -26,5 +26,8 @@
     <ClInclude Include="lmath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bounding_box.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -17,6 +17,7 @@ bld/
 
 *.suo
 *.user
+*.opendb
 *.FileListAbsolute.txt
 *\bin\*
 *\obj\*

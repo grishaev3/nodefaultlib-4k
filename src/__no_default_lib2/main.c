@@ -3,11 +3,11 @@
 //#pragma comment(linker, "/SECTION:.text,EWR")
 //#pragma comment(linker,"/FILEALIGN:512")
 
-#include <math.h>
-#include <Windows.h>
-#include <shellapi.h>
-#include <gl\glut.h>
+#ifdef _DEBUG
+#include <stdio.h>
+#endif // DEBUG
 
+#include <gl\glut.h>
 
 #define MATH_3D_IMPLEMENTATION
 #include "math_3d.h"
@@ -22,14 +22,27 @@ extern "C" {
 #endif  /* __cplusplus */
 
 
-mat4_t transform;
-mat4_t view;
-mat4_t projection;
-mat4_t prj_view;
+#ifdef _DEBUG
+void write(char * fmtstr, ...)
+{
+}
 
-vec3_t from;
-vec3_t to;
-vec3_t up;
+#else
+void write(char * fmtstr, ...)
+{
+	DWORD dwRet;
+	CHAR buffer[256];
+	va_list v1;
+	va_start(v1, fmtstr);
+	wvsprintf(buffer, fmtstr, v1);
+	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), buffer, lstrlen(buffer), &dwRet, 0);
+	va_end(v1);
+}
+#endif // DEBUG
+
+
+vec3_t from, to, up;
+mat4_t transform, view, projection, prj_view;
 
 void init()
 {
@@ -94,7 +107,7 @@ void resize(int maxX, int maxY)
 	projection = m4_perspective(73.74f, 1.0f*maxX / maxY, 0.2f, 200.0f);
 }
 
-int main(int argc, char **argv)
+int main(int* argc, char **argv)
 {
 	glutInit(argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -110,33 +123,6 @@ int main(int argc, char **argv)
 	glutMainLoop();
 	return 0;
 }
-
-void write(char * fmtstr, ...)
-{
-	DWORD dwRet;
-	CHAR buffer[256];
-	va_list v1;
-	va_start(v1, fmtstr);
-	wvsprintf(buffer, fmtstr, v1);
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), buffer, lstrlen(buffer), &dwRet, 0);
-	va_end(v1);
-}
-
-//typedef struct bounding_box {
-//	vec3_t far_left;
-//	vec3_t near_left;
-//	vec3_t near_right;
-//	vec3_t far_right;
-//} bounding_box;
-//
-//float get_near_dist(bounding_box* bb)
-//{
-//	return 0.2;
-//}
-//float get_far_dist(bounding_box* bb)
-//{
-//	return 200.0f;
-//}
 
 typedef struct args
 {
@@ -161,10 +147,15 @@ void get_comand_line(args *args)
 	LocalFree(szArglist);
 }
 
-
 void _cdecl mainCRTStartup()
 {
-	write(L"%s", L"Running mainCRTStartup...v%d\n", 2.1);
+	write(L"Running mainCRTStartup...v%.2f\n", 2.1);
+
+	// TODO: .initX87
+	__asm {
+		
+	}
+	
 	args args;
 	get_comand_line(&args);
 	main(&args.argc, &args.argv);
