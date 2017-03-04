@@ -1,33 +1,20 @@
 #pragma once
 
+static unsigned long int next = 1;
 
-int lrandi(unsigned int *seed)
+int rand(void) // RAND_MAX assumed to be 32767
 {
-	unsigned int next = *seed;
-	int result;
+	next = next * 1103515245 + 12345;
+	return (unsigned int)(next / 65536) % 32768;
+}
 
-	next *= 1103515245;
-	next += 12345;
-	result = (unsigned int)(next / 65536) % 2048;
-
-	next *= 1103515245;
-	next += 12345;
-	result <<= 10;
-	result ^= (unsigned int)(next / 65536) % 1024;
-
-	next *= 1103515245;
-	next += 12345;
-	result <<= 10;
-	result ^= (unsigned int)(next / 65536) % 1024;
-
-	*seed = next;
-
-	return result;
+void srand(unsigned int seed)
+{
+	next = seed;
 }
 
 float lrandf(float a, float b) {
-	unsigned seed = 42;
-	float random = ((float)lrandi(&seed)) / (float)RAND_MAX;
+	float random = ((float)rand()) / (float)RAND_MAX;
 	float diff = b - a;
 	float r = random * diff;
 	return a + r;

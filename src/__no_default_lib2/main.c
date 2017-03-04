@@ -53,12 +53,18 @@ void test_trigonometry()
 vec3_t from, to, up;
 mat4_t transform, view, projection, prj_view;
 
-float deltaTime = 0.0f;
-float cameraAngle = 0.0f;
+float deltaTime;
+float cameraAngle;
+
+const float numberOfBlock = 10;
+const float speed = 5;
+const int segCount = 50;
+
+float *jitArray;
 
 void init()
 {
-	from = vec3(0.0, 0.0, 1.33f);
+	from = vec3(0.0, 0.0, 1.0f);
 	up = vec3(0.0f, 1.0f, 0.0f);
 
 	glMatrixMode(GL_PROJECTION);
@@ -76,11 +82,10 @@ mat4_t get_transform(mat4_t translate, mat4_t rotate, mat4_t scale)
 }
 
 
-void draw_ring(float z, float jit)
+void draw_ring(float z, float radius, float jit)
 {
 	vec3_t scale = (vec3_t) { 0.65f, 0.05f, 1.0f };
 
-	float numberOfBlock = 12;
 	float step = 360 / numberOfBlock;
 
 	for (float angle = 0.0 + jit; angle < 360 - jit; angle += step)
@@ -89,7 +94,7 @@ void draw_ring(float z, float jit)
 
 		float s, c;
 		lsincosf(angle_in_rad, &s, &c);
-		vec3_t offset = (vec3_t) { c * 1.0f, s * 1.0f, z };
+		vec3_t offset = (vec3_t) { c * radius, s * radius, z };
 
 		transform = get_transform(
 			m4_translation(offset),
@@ -106,7 +111,6 @@ void draw_ring(float z, float jit)
 
 void display()
 {
-	const float speed = 5;
 	float startFrame = glutGet(GLUT_ELAPSED_TIME);
 
 	// camera fly calculate
@@ -117,6 +121,7 @@ void display()
 	view = m4_look_at(from, to, up);
 	prj_view = m4_mul(projection, view);
 
+	// move camera
 	from.z -= deltaTime;
 	to.z -= deltaTime;
 
@@ -126,9 +131,9 @@ void display()
 	glLoadIdentity();
 	glLoadMatrixf(&prj_view.m);	// current
 
-	int seed = 42;
-	for (int depth = 0; depth < 25; depth++) {
-		draw_ring(-(float)depth/1.5, (float)((lrandi(&seed) % 1000)) / 100.0f);
+	for (int depth = 0; depth < segCount; depth+=2) {
+		draw_ring(-(float)depth/3.5, 1.0f, jitArray[depth]);
+		draw_ring(-(float)depth/3.5, 1.1f, jitArray[depth+1]);
 	}
 
 	glutSwapBuffers();
@@ -139,14 +144,14 @@ void display()
 void resize(int maxX, int maxY)
 {
 	glViewport(0, 0, maxX, maxY);
-	projection = m4_perspective(73.74f, 1.0f*maxX / maxY, 0.2f, 200.0f);
+	projection = m4_perspective(73.74f, (float)maxX / maxY, 0.2f, 100.0f);
 }
 
 int main(int* argc, char **argv)
 {
 	glutInit(argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize(800, 600);
+	glutInitWindowSize(720, 385);
 	glutCreateWindow("__4K_demo");
 
 	glutReshapeFunc(resize);
@@ -182,10 +187,14 @@ void get_comand_line(args *args)
 
 void _cdecl mainCRTStartup()
 {
-	//printf("%f", lrandf(-10, 10));
-	//printf("%f", lrandf(-10, 10));
-	//printf("%f", lrandf(-10, 10));
-	//return;
+	srand(GetTickCount());
+
+
+	jitArray = (float*)LocalAlloc(LPTR, segCount * 2 * sizeof(float));
+	for (int i = 0; i < segCount; i++)
+	{
+		jitArray[i] = lrandf(-30.0f, 30.0f);
+	}
 
 	args args;
 	get_comand_line(&args);
