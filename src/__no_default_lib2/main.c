@@ -1,12 +1,12 @@
-//#pragma optimize("gsy",on)
-//#pragma comment(linker,"/MERGE:.rdata=.text /MERGE:.data=.text")
-//#pragma comment(linker, "/SECTION:.text,EWR")
-//#pragma comment(linker,"/FILEALIGN:512")
+#pragma comment(linker, "/MERGE:.data=.text")
+#pragma comment(linker, "/MERGE:.rdata=.text")
+#pragma comment(linker, "/SECTION:.text,EWR")
 
 #ifdef _DEBUG
 #include <stdio.h>
 #endif // DEBUG
 
+#include <windows.h>
 #include <gl\glut.h>
 
 #define MATH_3D_IMPLEMENTATION
@@ -62,14 +62,8 @@ float cameraAngle = 0.0f;
 
 void init()
 {
-	transform = m4_identity();
-	view = m4_identity();
-	projection = m4_identity();
-
 	from = vec3(0.0, 0.0, 2.0f);
-	to = vec3(0.0f, 0.0f, 0.0f);
 	up = vec3(0.0f, 1.0f, 0.0f);
-	view = m4_look_at(from, to, up);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -167,7 +161,6 @@ void get_comand_line(args *args)
 	szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 	if (NULL == szArglist)
 	{
-		write(L"%s", L"get_comand_line failed\n");
 		ExitProcess(1);
 	}
 
@@ -178,7 +171,6 @@ void get_comand_line(args *args)
 
 void _cdecl mainCRTStartup()
 {
-	write(L"Running mainCRTStartup...v%.2f\n", 2.1);
 	args args;
 	get_comand_line(&args);
 	main(&args.argc, &args.argv);

@@ -311,15 +311,15 @@ static inline mat4_t m4_rotation_z(float angle_in_rad) {
 		0, 0, 0, 1
 	);
 }
-
-static inline mat4_t m4_transpose(mat4_t matrix) {
-	return mat4(
-		matrix.m00, matrix.m01, matrix.m02, matrix.m03,
-		matrix.m10, matrix.m11, matrix.m12, matrix.m13,
-		matrix.m20, matrix.m21, matrix.m22, matrix.m23,
-		matrix.m30, matrix.m31, matrix.m32, matrix.m33
-	);
-}
+//
+//static inline mat4_t m4_transpose(mat4_t matrix) {
+//	return mat4(
+//		matrix.m00, matrix.m01, matrix.m02, matrix.m03,
+//		matrix.m10, matrix.m11, matrix.m12, matrix.m13,
+//		matrix.m20, matrix.m21, matrix.m22, matrix.m23,
+//		matrix.m30, matrix.m31, matrix.m32, matrix.m33
+//	);
+//}
 
 /**
 * Multiplication of two 4x4 matrices.
@@ -403,18 +403,18 @@ mat4_t m4_rotation(float angle_in_rad, vec3_t axis) {
 * https://msdn.microsoft.com/en-us/library/windows/desktop/dd373965(v=vs.85).aspx
 * https://unspecified.wordpress.com/2012/06/21/calculating-the-gluperspective-matrix-and-other-opengl-matrix-maths/
 */
-mat4_t m4_ortho(float left, float right, float bottom, float top, float back, float front) {
-	float l = left, r = right, b = bottom, t = top, n = front, f = back;
-	float tx = -(r + l) / (r - l);
-	float ty = -(t + b) / (t - b);
-	float tz = -(f + n) / (f - n);
-	return mat4(
-		2 / (r - l), 0, 0, tx,
-		0, 2 / (t - b), 0, ty,
-		0, 0, 2 / (f - n), tz,
-		0, 0, 0, 1
-	);
-}
+//mat4_t m4_ortho(float left, float right, float bottom, float top, float back, float front) {
+//	float l = left, r = right, b = bottom, t = top, n = front, f = back;
+//	float tx = -(r + l) / (r - l);
+//	float ty = -(t + b) / (t - b);
+//	float tz = -(f + n) / (f - n);
+//	return mat4(
+//		2 / (r - l), 0, 0, tx,
+//		0, 2 / (t - b), 0, ty,
+//		0, 0, 2 / (f - n), tz,
+//		0, 0, 0, 1
+//	);
+//}
 
 /**
 * Creates a perspective projection matrix for a camera.
@@ -530,41 +530,41 @@ mat4_t m4_look_at(vec3_t from, vec3_t to, vec3_t up) {
 *
 * https://www.khanacademy.org/math/precalculus/precalc-matrices/determinants-and-inverses-of-large-matrices/v/inverting-3x3-part-2-determinant-and-adjugate-of-a-matrix
 */
-mat4_t m4_invert_affine(mat4_t matrix) {
-	// Create shorthands to access matrix members
-	float m00 = matrix.m00, m10 = matrix.m10, m20 = matrix.m20, m30 = matrix.m30;
-	float m01 = matrix.m01, m11 = matrix.m11, m21 = matrix.m21, m31 = matrix.m31;
-	float m02 = matrix.m02, m12 = matrix.m12, m22 = matrix.m22, m32 = matrix.m32;
-
-	// Invert 3x3 part of the 4x4 matrix that contains the rotation, etc.
-	// That part is called R from here on.
-
-	// Calculate cofactor matrix of R
-	float c00 = m11*m22 - m12*m21, c10 = -(m01*m22 - m02*m21), c20 = m01*m12 - m02*m11;
-	float c01 = -(m10*m22 - m12*m20), c11 = m00*m22 - m02*m20, c21 = -(m00*m12 - m02*m10);
-	float c02 = m10*m21 - m11*m20, c12 = -(m00*m21 - m01*m20), c22 = m00*m11 - m01*m10;
-
-	// Caclculate the determinant by using the already calculated determinants
-	// in the cofactor matrix.
-	// Second sign is already minus from the cofactor matrix.
-	float det = m00*c00 + m10*c10 + m20 * c20;
-	if (fabsf(det) < 0.00001)
-		return m4_identity();
-
-	// Calcuate inverse of R by dividing the transposed cofactor matrix by the
-	// determinant.
-	float i00 = c00 / det, i10 = c01 / det, i20 = c02 / det;
-	float i01 = c10 / det, i11 = c11 / det, i21 = c12 / det;
-	float i02 = c20 / det, i12 = c21 / det, i22 = c22 / det;
-
-	// Combine the inverted R with the inverted translation
-	return mat4(
-		i00, i10, i20, -(i00*m30 + i10*m31 + i20*m32),
-		i01, i11, i21, -(i01*m30 + i11*m31 + i21*m32),
-		i02, i12, i22, -(i02*m30 + i12*m31 + i22*m32),
-		0, 0, 0, 1
-	);
-}
+//mat4_t m4_invert_affine(mat4_t matrix) {
+//	// Create shorthands to access matrix members
+//	float m00 = matrix.m00, m10 = matrix.m10, m20 = matrix.m20, m30 = matrix.m30;
+//	float m01 = matrix.m01, m11 = matrix.m11, m21 = matrix.m21, m31 = matrix.m31;
+//	float m02 = matrix.m02, m12 = matrix.m12, m22 = matrix.m22, m32 = matrix.m32;
+//
+//	// Invert 3x3 part of the 4x4 matrix that contains the rotation, etc.
+//	// That part is called R from here on.
+//
+//	// Calculate cofactor matrix of R
+//	float c00 = m11*m22 - m12*m21, c10 = -(m01*m22 - m02*m21), c20 = m01*m12 - m02*m11;
+//	float c01 = -(m10*m22 - m12*m20), c11 = m00*m22 - m02*m20, c21 = -(m00*m12 - m02*m10);
+//	float c02 = m10*m21 - m11*m20, c12 = -(m00*m21 - m01*m20), c22 = m00*m11 - m01*m10;
+//
+//	// Caclculate the determinant by using the already calculated determinants
+//	// in the cofactor matrix.
+//	// Second sign is already minus from the cofactor matrix.
+//	float det = m00*c00 + m10*c10 + m20 * c20;
+//	if (fabsf(det) < 0.00001)
+//		return m4_identity();
+//
+//	// Calcuate inverse of R by dividing the transposed cofactor matrix by the
+//	// determinant.
+//	float i00 = c00 / det, i10 = c01 / det, i20 = c02 / det;
+//	float i01 = c10 / det, i11 = c11 / det, i21 = c12 / det;
+//	float i02 = c20 / det, i12 = c21 / det, i22 = c22 / det;
+//
+//	// Combine the inverted R with the inverted translation
+//	return mat4(
+//		i00, i10, i20, -(i00*m30 + i10*m31 + i20*m32),
+//		i01, i11, i21, -(i01*m30 + i11*m31 + i21*m32),
+//		i02, i12, i22, -(i02*m30 + i12*m31 + i22*m32),
+//		0, 0, 0, 1
+//	);
+//}
 
 /**
 * Multiplies a 4x4 matrix with a 3D vector representing a point in 3D space.
@@ -573,19 +573,19 @@ mat4_t m4_invert_affine(mat4_t matrix) {
 * (x, y, z, 1). After the multiplication the vector is reduced to 3D again by
 * dividing through the 4th component (if it's not 0 or 1).
 */
-vec3_t m4_mul_pos(mat4_t matrix, vec3_t position) {
-	vec3_t result = vec3(
-		matrix.m00 * position.x + matrix.m10 * position.y + matrix.m20 * position.z + matrix.m30,
-		matrix.m01 * position.x + matrix.m11 * position.y + matrix.m21 * position.z + matrix.m31,
-		matrix.m02 * position.x + matrix.m12 * position.y + matrix.m22 * position.z + matrix.m32
-	);
-
-	float w = matrix.m03 * position.x + matrix.m13 * position.y + matrix.m23 * position.z + matrix.m33;
-	if (w != 0 && w != 1)
-		return vec3(result.x / w, result.y / w, result.z / w);
-
-	return result;
-}
+//vec3_t m4_mul_pos(mat4_t matrix, vec3_t position) {
+//	vec3_t result = vec3(
+//		matrix.m00 * position.x + matrix.m10 * position.y + matrix.m20 * position.z + matrix.m30,
+//		matrix.m01 * position.x + matrix.m11 * position.y + matrix.m21 * position.z + matrix.m31,
+//		matrix.m02 * position.x + matrix.m12 * position.y + matrix.m22 * position.z + matrix.m32
+//	);
+//
+//	float w = matrix.m03 * position.x + matrix.m13 * position.y + matrix.m23 * position.z + matrix.m33;
+//	if (w != 0 && w != 1)
+//		return vec3(result.x / w, result.y / w, result.z / w);
+//
+//	return result;
+//}
 
 /**
 * Multiplies a 4x4 matrix with a 3D vector representing a direction in 3D space.
@@ -598,19 +598,19 @@ vec3_t m4_mul_pos(mat4_t matrix, vec3_t position) {
 * (0, 0, 0, 1) in the bottom row which might set w to something other than 0
 * or 1.
 */
-vec3_t m4_mul_dir(mat4_t matrix, vec3_t direction) {
-	vec3_t result = vec3(
-		matrix.m00 * direction.x + matrix.m10 * direction.y + matrix.m20 * direction.z,
-		matrix.m01 * direction.x + matrix.m11 * direction.y + matrix.m21 * direction.z,
-		matrix.m02 * direction.x + matrix.m12 * direction.y + matrix.m22 * direction.z
-	);
-
-	float w = matrix.m03 * direction.x + matrix.m13 * direction.y + matrix.m23 * direction.z;
-	if (w != 0 && w != 1)
-		return vec3(result.x / w, result.y / w, result.z / w);
-
-	return result;
-}
+//vec3_t m4_mul_dir(mat4_t matrix, vec3_t direction) {
+//	vec3_t result = vec3(
+//		matrix.m00 * direction.x + matrix.m10 * direction.y + matrix.m20 * direction.z,
+//		matrix.m01 * direction.x + matrix.m11 * direction.y + matrix.m21 * direction.z,
+//		matrix.m02 * direction.x + matrix.m12 * direction.y + matrix.m22 * direction.z
+//	);
+//
+//	float w = matrix.m03 * direction.x + matrix.m13 * direction.y + matrix.m23 * direction.z;
+//	if (w != 0 && w != 1)
+//		return vec3(result.x / w, result.y / w, result.z / w);
+//
+//	return result;
+//}
 
 /*
 void m4_print(mat4_t matrix) {
