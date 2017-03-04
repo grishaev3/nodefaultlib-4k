@@ -25,6 +25,13 @@ extern "C" {
 #ifdef _DEBUG
 void write(char * fmtstr, ...)
 {
+	DWORD dwRet;
+	CHAR buffer[256];
+	va_list v1;
+	va_start(v1, fmtstr);
+	wvsprintf(buffer, fmtstr, v1);
+	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), buffer, lstrlen(buffer), &dwRet, 0);
+	va_end(v1);
 }
 
 void test_trigonometry()
@@ -40,17 +47,6 @@ void test_trigonometry()
 	printf("sqrt %d: %f{%f}\n", (int)angle, lsqrtf(deginrad), sqrtf(deginrad));
 	printf("fabs %f: %f{%f}\n", -angle * M_PI, labsf(-angle * M_PI), fabsf(-angle * M_PI));
 }
-#else
-void write(char * fmtstr, ...)
-{
-	DWORD dwRet;
-	CHAR buffer[256];
-	va_list v1;
-	va_start(v1, fmtstr);
-	wvsprintf(buffer, fmtstr, v1);
-	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), buffer, lstrlen(buffer), &dwRet, 0);
-	va_end(v1);
-}
 #endif // DEBUG
 
 
@@ -62,7 +58,7 @@ float cameraAngle = 0.0f;
 
 void init()
 {
-	from = vec3(0.0, 0.0, 2.0f);
+	from = vec3(0.0, 0.0, 1.33f);
 	up = vec3(0.0f, 1.0f, 0.0f);
 
 	glMatrixMode(GL_PROJECTION);
@@ -79,18 +75,50 @@ mat4_t get_transform(mat4_t translate, mat4_t rotate, mat4_t scale)
 	return m4_mul(m4_mul(translate, rotate), scale);
 }
 
+
+void draw_ring(float z, float jit)
+{
+	vec3_t scale = (vec3_t) { 0.65f, 0.05f, 1.0f };
+
+	float numberOfBlock = 12;
+	float step = 360 / numberOfBlock;
+
+	for (float angle = 0.0 + jit; angle < 360 - jit; angle += step)
+	{
+		const float angle_in_rad = angle*Deg2Rad;
+
+		float s, c;
+		lsincosf(angle_in_rad, &s, &c);
+		vec3_t offset = (vec3_t) { c * 1.0f, s * 1.0f, z };
+
+		transform = get_transform(
+			m4_translation(offset),
+			m4_rotation_z((angle + 90) * Deg2Rad),
+			m4_scaling(scale));
+
+		glPushMatrix();
+		glMultMatrixf(&transform.m); // current * transform
+		glutSolidCube(0.5f);
+		glPopMatrix();
+	}
+}
+
+
 void display()
 {
 	const float speed = 5;
 	float startFrame = glutGet(GLUT_ELAPSED_TIME);
-	
+
 	// camera fly calculate
 	cameraAngle += deltaTime * speed; // ~0.15
-	float s, c, radius = 0.5f;
+	float s, c, radius = 0.35f;
 	lsincosf(cameraAngle * Deg2Rad, &s, &c);
 	to.x = c*radius;	to.y = s*radius;
 	view = m4_look_at(from, to, up);
 	prj_view = m4_mul(projection, view);
+
+	from.z -= deltaTime;
+	to.z -= deltaTime;
 
 	// setup view
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -98,25 +126,9 @@ void display()
 	glLoadIdentity();
 	glLoadMatrixf(&prj_view.m);	// current
 
-	vec3_t scale = (vec3_t) { 0.4, 0.05, 1 };
-	const float one_deg = M_PI / 180;
-	for (float angle = 0.0; angle < 360; angle += 360 / 12)
-	{
-		const float angle_in_rad = angle*one_deg;
-
-		float s, c;
-		lsincosf(angle_in_rad, &s, &c);
-		vec3_t offset = (vec3_t) { c * 1.0f , s * 1.0f, 0.0f};
-
-		transform = get_transform(
-			m4_translation(offset),
-			m4_rotation_z((angle + 90) * one_deg),
-			m4_scaling(scale));
-
-		glPushMatrix();
-		glMultMatrixf(&transform.m); // current * transform
-		glutSolidCube(0.5f);
-		glPopMatrix();
+	int seed = 42;
+	for (int depth = 0; depth < 25; depth++) {
+		draw_ring(-(float)depth/1.5, (float)((lrandi(&seed) % 1000)) / 100.0f);
 	}
 
 	glutSwapBuffers();
@@ -144,7 +156,6 @@ int main(int* argc, char **argv)
 	init();
 
 	glutMainLoop();
-	return 0;
 }
 
 typedef struct args
@@ -171,6 +182,11 @@ void get_comand_line(args *args)
 
 void _cdecl mainCRTStartup()
 {
+	//printf("%f", lrandf(-10, 10));
+	//printf("%f", lrandf(-10, 10));
+	//printf("%f", lrandf(-10, 10));
+	//return;
+
 	args args;
 	get_comand_line(&args);
 	main(&args.argc, &args.argv);
