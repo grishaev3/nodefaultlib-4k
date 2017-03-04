@@ -83,6 +83,10 @@ v1.0  2016-02-15  Initial release
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef Deg2Rad
+#define Deg2Rad 0.0174532925199433
+#endif
+
 
 //
 // 3D vectors
@@ -273,9 +277,9 @@ static inline mat4_t m4_scaling(vec3_t scale) {
 }
 
 static inline mat4_t m4_rotation_x(float angle_in_rad) {
-	float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
-	/*float s, c;
-	lsincosf(angle_in_rad, &s, &c);*/
+	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
+	float s, c;
+	lsincosf(angle_in_rad, &s, &c);
 	return mat4(
 		1, 0, 0, 0,
 		0, c, -s, 0,
@@ -285,9 +289,9 @@ static inline mat4_t m4_rotation_x(float angle_in_rad) {
 }
 
 static inline mat4_t m4_rotation_y(float angle_in_rad) {
-	float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
-	/*float s, c;
-	lsincosf(angle_in_rad, &s, &c);*/
+	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
+	float s, c;
+	lsincosf(angle_in_rad, &s, &c);
 	return mat4(
 		c, 0, s, 0,
 		0, 1, 0, 0,
@@ -297,9 +301,9 @@ static inline mat4_t m4_rotation_y(float angle_in_rad) {
 }
 
 static inline mat4_t m4_rotation_z(float angle_in_rad) {
-	float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
-	/*float s, c;
-	lsincosf(angle_in_rad, &s, &c);*/
+	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
+	float s, c;
+	lsincosf(angle_in_rad, &s, &c);
 	return mat4(
 		c, -s, 0, 0,
 		s, c, 0, 0,

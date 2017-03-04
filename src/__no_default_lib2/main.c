@@ -27,6 +27,19 @@ void write(char * fmtstr, ...)
 {
 }
 
+void test_trigonometry()
+{
+	float angle = 42.0f;
+	float s, c;
+	float deginrad = angle * Deg2Rad;
+	lsincosf(deginrad, &s, &c);
+
+	printf("sin %d: %f{%f}\n", (int)angle, s, sinf(deginrad));
+	printf("cos %d: %f{%f}\n", (int)angle, c, cosf(deginrad));
+	printf("tan %d: %f{%f}\n", (int)angle, ltanf(deginrad), tanf(deginrad));
+	printf("sqrt %d: %f{%f}\n", (int)angle, lsqrtf(deginrad), sqrtf(deginrad));
+	printf("fabs %f: %f{%f}\n", -angle * M_PI, labsf(-angle * M_PI), fabsf(-angle * M_PI));
+}
 #else
 void write(char * fmtstr, ...)
 {
@@ -43,6 +56,9 @@ void write(char * fmtstr, ...)
 
 vec3_t from, to, up;
 mat4_t transform, view, projection, prj_view;
+
+float deltaTime = 0.0f;
+float cameraAngle = 0.0f;
 
 void init()
 {
@@ -71,9 +87,19 @@ mat4_t get_transform(mat4_t translate, mat4_t rotate, mat4_t scale)
 
 void display()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	const float speed = 5;
+	float startFrame = glutGet(GLUT_ELAPSED_TIME);
+	
+	// camera fly calculate
+	cameraAngle += deltaTime * speed; // ~0.15
+	float s, c, radius = 0.5f;
+	lsincosf(cameraAngle * Deg2Rad, &s, &c);
+	to.x = c*radius;	to.y = s*radius;
+	view = m4_look_at(from, to, up);
 	prj_view = m4_mul(projection, view);
 
+	// setup view
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glLoadMatrixf(&prj_view.m);	// current
@@ -98,7 +124,10 @@ void display()
 		glutSolidCube(0.5f);
 		glPopMatrix();
 	}
+
 	glutSwapBuffers();
+
+	deltaTime = (float)(glutGet(GLUT_ELAPSED_TIME) - startFrame) / 1000.0f;
 }
 
 void resize(int maxX, int maxY)
@@ -150,12 +179,6 @@ void get_comand_line(args *args)
 void _cdecl mainCRTStartup()
 {
 	write(L"Running mainCRTStartup...v%.2f\n", 2.1);
-
-	// TODO: .initX87
-	__asm {
-		
-	}
-	
 	args args;
 	get_comand_line(&args);
 	main(&args.argc, &args.argv);

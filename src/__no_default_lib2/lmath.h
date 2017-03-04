@@ -18,39 +18,35 @@ void lsincosf(double angle, float* psin, float* pcos)
 
 float ltanf(double angle)
 {
-	double *ttan;
+	double ttan, one;
 
 	__asm {
+		fninit
 		fld qword ptr angle
 		fptan
-		fstp qword ptr ttan
+		fstp qword ptr one
+		fst qword ptr ttan
 	}
 
-	return (float)*ttan;
+	return (float)ttan;
 }
 
 float lsqrtf(double value)
 {
-	double *result;
+	double result;
 
 	__asm {
+		fninit
 		fld qword ptr value
 		fsqrt
 		fstp qword ptr result
 	}
 
-	return (float)*result;
+	return (float)result;
 }
 
 float labsf(double value)
 {
-	double *result;
-
-	__asm {
-		fld qword ptr value
-		fistp qword ptr result
-	}
-
-	return (float)*result;
+	return (value < 0) ? -value : value;
 }
 
