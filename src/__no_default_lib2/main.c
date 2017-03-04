@@ -47,7 +47,9 @@ void test_trigonometry()
 	printf("sqrt %d: %f{%f}\n", (int)angle, lsqrtf(deginrad), sqrtf(deginrad));
 	printf("fabs %f: %f{%f}\n", -angle * M_PI, labsf(-angle * M_PI), fabsf(-angle * M_PI));
 }
-#endif // DEBUG
+#endif // DEBUG#
+
+#define IS_MOVE
 
 
 vec3_t from, to, up;
@@ -58,6 +60,7 @@ float cameraAngle;
 
 const float numberOfBlock = 10;
 const float speed = 5;
+const int windingCount = 5;
 const int segCount = 50;
 
 float *jitArray;
@@ -74,6 +77,11 @@ void init()
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
+
+
+	glColor3f(1, 1, 1, 0.5f);
+	glEnable(GL_BLEND); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 mat4_t get_transform(mat4_t translate, mat4_t rotate, mat4_t scale)
@@ -98,7 +106,7 @@ void draw_ring(float z, float radius, float jit)
 
 		transform = get_transform(
 			m4_translation(offset),
-			m4_rotation_z((angle + 90) * Deg2Rad),
+			m4_rotation_z((angle + 90.0f) * Deg2Rad),
 			m4_scaling(scale));
 
 		glPushMatrix();
@@ -122,8 +130,13 @@ void display()
 	prj_view = m4_mul(projection, view);
 
 	// move camera
-	from.z -= deltaTime;
-	to.z -= deltaTime;
+#ifdef IS_MOVE
+	float deltaCameraZ = deltaTime*1/speed;
+	from.z -= deltaCameraZ;
+	to.z -= deltaCameraZ;
+#endif // IS_MOVE
+
+
 
 	// setup view
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -131,9 +144,13 @@ void display()
 	glLoadIdentity();
 	glLoadMatrixf(&prj_view.m);	// current
 
-	for (int depth = 0; depth < segCount; depth+=2) {
-		draw_ring(-(float)depth/3.5, 1.0f, jitArray[depth]);
-		draw_ring(-(float)depth/3.5, 1.1f, jitArray[depth+1]);
+	for (int depth = 0; depth < segCount; depth+= windingCount) {
+		float z = -(float)depth/ windingCount;
+		float currentRadius = 1.0f;
+		for (int w = 0; w < windingCount; w++) {
+			draw_ring(z, currentRadius, jitArray[depth + w]);
+			currentRadius += 0.1f;
+		}
 	}
 
 	glutSwapBuffers();
@@ -151,7 +168,7 @@ int main(int* argc, char **argv)
 {
 	glutInit(argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize(720, 385);
+	glutInitWindowSize(1000, 600);
 	glutCreateWindow("__4K_demo");
 
 	glutReshapeFunc(resize);
@@ -189,11 +206,13 @@ void _cdecl mainCRTStartup()
 {
 	srand(GetTickCount());
 
-
-	jitArray = (float*)LocalAlloc(LPTR, segCount * 2 * sizeof(float));
-	for (int i = 0; i < segCount; i++)
+	jitArray = (float*)LocalAlloc(LPTR, segCount * windingCount * sizeof(float));
+	for (int i = 0; i < segCount; i+= windingCount)
 	{
-		jitArray[i] = lrandf(-30.0f, 30.0f);
+		for (int j = 0; j < windingCount; j++) {
+			jitArray[i + j] = lrandf(10.0f*j, 10.0f*j);
+	
+		}
 	}
 
 	args args;
