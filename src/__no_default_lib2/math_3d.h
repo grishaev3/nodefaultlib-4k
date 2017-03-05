@@ -176,20 +176,20 @@ static inline mat4_t mat4(
 	float m03, float m13, float m23, float m33
 );
 
-static inline mat4_t m4_identity();
-static inline mat4_t m4_translation(vec3_t offset);
-static inline mat4_t m4_scaling(vec3_t scale);
-static inline mat4_t m4_rotation_x(float angle_in_rad);
-static inline mat4_t m4_rotation_y(float angle_in_rad);
-static inline mat4_t m4_rotation_z(float angle_in_rad);
+mat4_t m4_identity();
+mat4_t m4_translation(vec3_t offset);
+mat4_t m4_scaling(vec3_t scale);
+mat4_t m4_rotation_x(float angle_in_rad);
+mat4_t m4_rotation_y(float angle_in_rad);
+mat4_t m4_rotation_z(float angle_in_rad);
 mat4_t m4_rotation(float angle_in_rad, vec3_t axis);
 
 mat4_t m4_ortho(float left, float right, float bottom, float top, float back, float front);
 mat4_t m4_perspective(float vertical_field_of_view_in_deg, float aspect_ratio, float near_view_distance, float far_view_distance);
 mat4_t m4_look_at(vec3_t from, vec3_t to, vec3_t up);
 
-static inline mat4_t m4_transpose(mat4_t matrix);
-static inline mat4_t m4_mul(mat4_t a, mat4_t b);
+mat4_t m4_transpose(mat4_t matrix);
+mat4_t m4_mul(mat4_t a, mat4_t b);
 mat4_t m4_invert_affine(mat4_t matrix);
 vec3_t m4_mul_pos(mat4_t matrix, vec3_t position);
 vec3_t m4_mul_dir(mat4_t matrix, vec3_t direction);
@@ -248,7 +248,7 @@ static inline mat4_t mat4(
 	};
 }
 
-static inline mat4_t m4_identity() {
+mat4_t m4_identity() {
 	return mat4(
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -257,7 +257,7 @@ static inline mat4_t m4_identity() {
 	);
 }
 
-static inline mat4_t m4_translation(vec3_t offset) {
+mat4_t m4_translation(vec3_t offset) {
 	return mat4(
 		1, 0, 0, offset.x,
 		0, 1, 0, offset.y,
@@ -266,7 +266,7 @@ static inline mat4_t m4_translation(vec3_t offset) {
 	);
 }
 
-static inline mat4_t m4_scaling(vec3_t scale) {
+mat4_t m4_scaling(vec3_t scale) {
 	float x = scale.x, y = scale.y, z = scale.z;
 	return mat4(
 		x, 0, 0, 0,
@@ -276,7 +276,7 @@ static inline mat4_t m4_scaling(vec3_t scale) {
 	);
 }
 
-static inline mat4_t m4_rotation_x(float angle_in_rad) {
+mat4_t m4_rotation_x(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
 	lsincosf(angle_in_rad, &s, &c);
@@ -288,7 +288,7 @@ static inline mat4_t m4_rotation_x(float angle_in_rad) {
 	);
 }
 
-static inline mat4_t m4_rotation_y(float angle_in_rad) {
+mat4_t m4_rotation_y(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
 	lsincosf(angle_in_rad, &s, &c);
@@ -300,7 +300,7 @@ static inline mat4_t m4_rotation_y(float angle_in_rad) {
 	);
 }
 
-static inline mat4_t m4_rotation_z(float angle_in_rad) {
+mat4_t m4_rotation_z(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
 	lsincosf(angle_in_rad, &s, &c);
@@ -331,7 +331,7 @@ static inline mat4_t m4_rotation_z(float angle_in_rad) {
 * But note that the article use the first index for rows and the second for
 * columns.
 */
-static inline mat4_t m4_mul(mat4_t a, mat4_t b) {
+mat4_t m4_mul(mat4_t a, mat4_t b) {
 	mat4_t result;
 
 	for (int i = 0; i < 4; i++) {
@@ -345,6 +345,11 @@ static inline mat4_t m4_mul(mat4_t a, mat4_t b) {
 	}
 
 	return result;
+}
+
+mat4_t get_transform(mat4_t translate, mat4_t rotate, mat4_t scale)
+{
+	return m4_mul(m4_mul(translate, rotate), scale);
 }
 
 #endif // MATH_3D_HEADER

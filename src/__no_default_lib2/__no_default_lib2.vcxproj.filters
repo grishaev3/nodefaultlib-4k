@@ -18,6 +18,9 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lshader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="math_3d.h">
@@ -27,6 +30,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bounding_box.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lshader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="geom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

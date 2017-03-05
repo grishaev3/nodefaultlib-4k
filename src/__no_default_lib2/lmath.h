@@ -2,19 +2,19 @@
 
 static unsigned long int next = 1;
 
-int rand(void) // RAND_MAX assumed to be 32767
+int lrand(void) // RAND_MAX assumed to be 32767
 {
 	next = next * 1103515245 + 12345;
 	return (unsigned int)(next / 65536) % 32768;
 }
 
-void srand(unsigned int seed)
+void lsrand(unsigned int seed)
 {
 	next = seed;
 }
 
 float lrandf(float a, float b) {
-	float random = ((float)rand()) / (float)RAND_MAX;
+	float random = ((float)lrand()) / (float)RAND_MAX;
 	float diff = b - a;
 	float r = random * diff;
 	return a + r;
