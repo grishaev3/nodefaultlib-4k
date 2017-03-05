@@ -43,7 +43,7 @@ void draw_ring(float z, float radius, float jit, const geometry_info *info)
 
 		g_transform = get_transform(
 			m4_translation(offset),
-			m4_rotation_z((angle + 90.0f) * Deg2Rad),
+			m4_rotation_z((angle - 90.0f) * Deg2Rad),
 			m4_scaling(scale));
 
 		glPushMatrix();

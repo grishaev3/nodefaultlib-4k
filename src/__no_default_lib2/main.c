@@ -51,7 +51,7 @@ void test_trigonometry()
 }
 #endif // DEBUG#
 
-//#define IS_MOVE
+#define IS_MOVE
 
 /* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
 
@@ -75,21 +75,33 @@ void init()
 
 	lsrand(GetTickCount());
 
+	GLfloat light0_ambient[] = { 0.1, 0.1, 0.1, 1.0 };
+	GLfloat light0_diffuse[] = { 0.15, 1.0, 0.25, 1.0 };
+	float light0_direction[] = { 0.0, 0.0f, -1.0, 1.0 };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
+	glLightfv(GL_LIGHT0, GL_POSITION, light0_direction);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHTING);
+
 	init_gl_arb();
-	load_shaders();
+	//if (!load_shaders())return;
 
 	g_geometry_info.numberOfBlock = 10;
 	g_geometry_info.windingCount = 5;
 	g_geometry_info.segCount = 50;
 	fill_jitArray(&g_geometry_info);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 
-	//glPolygonMode(GL_FRONT, GL_LINE);
-	//glFrontFace(GL_CCW);
-	//glCullFace(GL_BACK);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+	//glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 
 	//glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
 	//glEnable(GL_BLEND); 
@@ -117,9 +129,14 @@ void display()
 
 	// setup view
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
+
+
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glLoadMatrixf(&g_prj_view.m);	// current
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	/* main draw */
 	glUseProgramObjectARB(my_program);

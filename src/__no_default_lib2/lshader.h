@@ -115,8 +115,8 @@ int load_shaders()
 
 	// Get Vertex And Fragment Shader Sources
 	
-	my_vertex_shader_source = "void main() { gl_Position  =  ftransform(); }";
-	my_fragment_shader_source = "void main() { gl_FragColor = vec4(0,1,0,0.35); }";
+	my_vertex_shader_source = "varying vec4 diffuse; void main() { gl_Position  =  ftransform(); vec3 normal = gl_Normal; vec3 lightVector = normalize(gl_LightSource[0].position.xyz); float nxDir = max(0.0, dot(normal, lightVector)); diffuse = gl_LightSource[0].diffuse * nxDir; }";
+	my_fragment_shader_source = "varying vec4 diffuse; void main() {  gl_FragColor = (gl_LightSource[0].ambient + diffuse); }";
 
 	// Create Shader And Program Objects
 	my_program = glCreateProgramObjectARB();
