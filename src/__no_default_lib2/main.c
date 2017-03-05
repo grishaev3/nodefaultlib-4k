@@ -51,7 +51,7 @@ void test_trigonometry()
 }
 #endif // DEBUG#
 
-#define IS_MOVE
+//#define IS_MOVE
 
 /* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
 
@@ -64,12 +64,19 @@ float g_cameraAngle;
 const float g_speed = 5;
 geometry_info g_geometry_info;
 
+extern GLenum my_program;
+extern GLenum my_vertex_shader;
+extern GLenum my_fragment_shader;
+
 void init()
 {
 	g_from = vec3(0.0, 0.0, 1.0f);
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
 	lsrand(GetTickCount());
+
+	init_gl_arb();
+	load_shaders();
 
 	g_geometry_info.numberOfBlock = 10;
 	g_geometry_info.windingCount = 5;
@@ -79,15 +86,14 @@ void init()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glPolygonMode(GL_FRONT, GL_LINE);
-	glFrontFace(GL_CCW);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	//glPolygonMode(GL_FRONT, GL_LINE);
+	//glFrontFace(GL_CCW);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
 
-
-	glColor4f(0, 1, 0, 0.35f);
-	glEnable(GL_BLEND); 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
+	//glEnable(GL_BLEND); 
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void display()
@@ -116,10 +122,16 @@ void display()
 	glLoadMatrixf(&g_prj_view.m);	// current
 
 	/* main draw */
+	glUseProgramObjectARB(my_program);
 	draw_geom(&g_geometry_info);
 
-	glutSwapBuffers();
+	//glBegin(GL_TRIANGLES);
+	//	glVertex3f(1.0f, 1.0f, -1.0f);
+	//	glVertex3f(-1.0f, 1.0f, -1.0f);
+	//	glVertex3f(1.0f, -1.0f, -1.0f);
+	//glEnd();
 
+	glutSwapBuffers();
 	g_deltaTime = (float)(glutGet(GLUT_ELAPSED_TIME) - startFrame) / 1000.0f;
 }
 
