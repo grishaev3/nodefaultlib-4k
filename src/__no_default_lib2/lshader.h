@@ -18,13 +18,10 @@ PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
 PFNGLUSEPROGRAMOBJECTARBPROC  glUseProgramObjectARB;
 PFNGLGETATTRIBLOCATIONARBPROC glGetAttribLocationARB;
 
-
 PFNGLGETSHADERIVPROC glGetShaderiv;
 PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
 
-
-GLenum my_program;
-
+GLenum g_ShadingProgram;
 
 #ifdef _DEBUG
 int IsExtEnable(const char * pName)
@@ -96,7 +93,7 @@ int check_shader(GLuint shader)
 
 	if (!success) {
 		GLint logSize = 0;
-		int maxLength = 256;
+		int maxLength = MAX_PATH;
 		char *errorLog = (char*)LocalAlloc(LPTR, maxLength);
 		glGetShaderiv(shader, maxLength, &logSize);
 		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
@@ -108,18 +105,19 @@ int check_shader(GLuint shader)
 
 int load_shaders()
 {
-	char * my_fragment_shader_source;
-	char * my_vertex_shader_source;
 	GLenum my_vertex_shader;
 	GLenum my_fragment_shader;
+	char *my_vertex_shader_source;
+	char *my_fragment_shader_source;
 
+#ifdef _DEBUG
 	// Get Vertex And Fragment Shader Sources
-	
-	my_vertex_shader_source = "varying vec4 diffuse; void main() { gl_Position  =  ftransform(); vec3 normal = gl_Normal; vec3 lightVector = normalize(gl_LightSource[0].position.xyz); float nxDir = max(0.0, dot(normal, lightVector)); diffuse = gl_LightSource[0].diffuse * nxDir; }";
-	my_fragment_shader_source = "varying vec4 diffuse; void main() {  gl_FragColor = (gl_LightSource[0].ambient + diffuse); }";
+	my_vertex_shader_source = read_file("v.hlsl");
+	my_fragment_shader_source = read_file("f.hlsl");
+#endif
 
 	// Create Shader And Program Objects
-	my_program = glCreateProgramObjectARB();
+	g_ShadingProgram = glCreateProgramObjectARB();
 	my_vertex_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 	my_fragment_shader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
 
@@ -142,12 +140,9 @@ int load_shaders()
 #endif
 
 	// Attach The Shader Objects To The Program Object
-	glAttachObjectARB(my_program, my_vertex_shader);
-	glAttachObjectARB(my_program, my_fragment_shader);
+	glAttachObjectARB(g_ShadingProgram, my_vertex_shader);
+	glAttachObjectARB(g_ShadingProgram, my_fragment_shader);
 
 	// Link The Program Object
-	glLinkProgramARB(my_program);
-
-	// Use The Program Object Instead Of Fixed Function OpenGL
-	glUseProgramObjectARB(my_program);
+	glLinkProgramARB(g_ShadingProgram);
 }

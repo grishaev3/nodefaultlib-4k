@@ -174,10 +174,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
+    <ClCompile Include="template.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bounding_box.h" />
     <ClInclude Include="geom.h" />
+    <ClInclude Include="io.h" />
     <ClInclude Include="lmath.h" />
     <ClInclude Include="lshader.h" />
     <ClInclude Include="math_3d.h" />

@@ -13,6 +13,7 @@
 #include "math_3d.h"
 #include "lmath.h"
 #include "geom.h"
+#include "io.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,6 +53,7 @@ void test_trigonometry()
 #endif // DEBUG#
 
 #define IS_MOVE
+#define IS_SHADING
 
 /* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
 
@@ -64,9 +66,7 @@ float g_cameraAngle;
 const float g_speed = 5;
 geometry_info g_geometry_info;
 
-extern GLenum my_program;
-extern GLenum my_vertex_shader;
-extern GLenum my_fragment_shader;
+extern GLenum g_ShadingProgram;
 
 void init()
 {
@@ -74,38 +74,25 @@ void init()
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
 	lsrand(GetTickCount());
-
-	GLfloat light0_ambient[] = { 0.1, 0.1, 0.1, 1.0 };
-	GLfloat light0_diffuse[] = { 0.15, 1.0, 0.25, 1.0 };
-	float light0_direction[] = { 0.0, 0.0f, -1.0, 1.0 };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, light0_direction);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHTING);
-
 	init_gl_arb();
-	//if (!load_shaders())return;
+
+#ifdef IS_SHADING
+	if (!load_shaders()) return;
+#endif // IS_SHADING
 
 	g_geometry_info.numberOfBlock = 10;
 	g_geometry_info.windingCount = 5;
 	g_geometry_info.segCount = 50;
 	fill_jitArray(&g_geometry_info);
 
-	glPolygonMode(GL_FRONT, GL_FILL);
+	glPolygonMode(GL_FRONT, GL_LINE);
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
-	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-
-	//glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-
-	//glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
-	//glEnable(GL_BLEND); 
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
+	glEnable(GL_BLEND); 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void display()
@@ -130,7 +117,6 @@ void display()
 	// setup view
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glLoadMatrixf(&g_prj_view.m);	// current
@@ -139,7 +125,9 @@ void display()
 	glLoadIdentity();
 
 	/* main draw */
-	glUseProgramObjectARB(my_program);
+#ifdef IS_SHADING
+	glUseProgramObjectARB(g_ShadingProgram);
+#endif // IS_SHADING
 	draw_geom(&g_geometry_info);
 
 	//glBegin(GL_TRIANGLES);
