@@ -4,6 +4,41 @@
 
 extern mat4_t g_transform;
 
+
+float ver[8][3] =
+{
+	{ -0.25,-0.25,0.25 },
+	{ -0.25,0.25,0.25 },
+	{ 0.25,0.25,0.25 },
+	{ 0.25,-0.25,0.25 },
+	{ -0.25,-0.25,-0.25 },
+	{ -0.25,0.25,-0.25 },
+	{ 0.25,0.25,-0.25 },
+	{ 0.25,-0.25,-0.25 },
+};
+
+void quad(int a, int b, int c, int d)
+{
+	glBegin(GL_QUADS);
+	glColor3f(1.0f,1.0f,1.0f);
+
+	glVertex3fv(ver[a]);
+	glVertex3fv(ver[b]);
+	glVertex3fv(ver[c]);
+	glVertex3fv(ver[d]);
+	glEnd();
+}
+
+void colorcube()
+{
+	quad(0, 3, 2, 1);
+	quad(2, 3, 7, 6);
+	quad(0, 4, 7, 3);
+	quad(1, 2, 6, 5);
+	quad(4, 5, 6, 7);
+	quad(0, 1, 5, 4);
+}
+
 typedef struct { 
 	int numberOfBlock, windingCount, segCount;
 	float *jitArray;
@@ -47,8 +82,8 @@ void draw_ring(float z, float radius, float jit, const geometry_info *info)
 			m4_scaling(scale));
 
 		glPushMatrix();
-		glMultMatrixf(&g_transform.m); // current * transform
-		glutSolidCube(0.5f);
+		glMultMatrixf((const GLfloat*)&g_transform.m); // current * transform
+		colorcube();
 		glPopMatrix();
 	}
 }
