@@ -97,6 +97,9 @@
       <ExceptionHandling>false</ExceptionHandling>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -182,6 +185,7 @@
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="args.h" />
     <ClInclude Include="bounding_box.h" />
     <ClInclude Include="geom.h" />
     <ClInclude Include="io.h" />
@@ -189,6 +193,7 @@
     <ClInclude Include="lshader.h" />
     <ClInclude Include="math_3d.h" />
     <ClInclude Include="sse_mathfun.h" />
+    <ClInclude Include="tests.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,3 +1,5 @@
+#pragma once
+
 /**
 
 Math 3D v1.0

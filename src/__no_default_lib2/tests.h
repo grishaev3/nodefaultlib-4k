@@ -1,0 +1,56 @@
+#pragma once
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+#ifdef _DEBUG
+
+void write(char * fmtstr, ...)
+{
+	DWORD dwRet;
+	CHAR buffer[256];
+	va_list v1;
+	va_start(v1, fmtstr);
+	wvsprintf(buffer, fmtstr, v1);
+	WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), buffer, lstrlen(buffer), &dwRet, 0);
+	va_end(v1);
+}
+
+void test_trigonometry()
+{
+	float angle = 42.0f;
+	float s, c;
+	float deginrad = angle * Deg2Rad;
+	lsincosf(deginrad, &s, &c);
+
+	FILE *fp = fopen("debug.txt", "w");
+	if (!fp) return;
+
+	fprintf(fp, "sin %d: %f{%f}\n", (int)angle, s, sinf(deginrad));
+	fprintf(fp, "cos %d: %f{%f}\n", (int)angle, c, cosf(deginrad));
+	fprintf(fp, "tan %d: %f{%f}\n", (int)angle, ltanf(deginrad), tanf(deginrad));
+	fprintf(fp, "sqrt %d: %f{%f}\n", (int)angle, lsqrtf(deginrad), sqrtf(deginrad));
+	fprintf(fp, "fabs %f: %f{%f}\n", -angle * M_PI, labsf(-angle * M_PI), fabsf(-angle * M_PI));
+
+	fclose(fp);
+}
+
+int test_random_numbers()
+{
+	FILE *fp = fopen("debug.txt", "w");
+	if (!fp) return;
+
+	lsrand(GetTickCount());
+	fprintf(fp, "lrand()\n");
+	for (int i = 0; i < 10; i++)
+		fprintf(fp, "%d\n", lrand());
+
+	fprintf(fp, "\nfrand(0.0f, 10.0f)\n");
+	for (int i = 0; i < 10; i++)
+		fprintf(fp, "%f\n", lrandf(0, 10));
+
+	fclose(fp);
+}
+
+#endif // DEBUG#
