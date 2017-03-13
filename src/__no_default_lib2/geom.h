@@ -28,7 +28,7 @@ void quad(int a, int b, int c, int d)
 	glEnd();
 }
 
-void colorcube()
+void draw_plane()
 {
 	quad(0, 3, 2, 1);
 	quad(2, 3, 7, 6);
@@ -38,32 +38,14 @@ void colorcube()
 	quad(0, 1, 5, 4);
 }
 
-
-//numberOfBlock = 3;	// кол-во блоков в окружности
-//windingCount = 1;		// кол-во слоёв (мотков) с увеличивающимся радиусом
-//segCount = 10;		// длинна тунеля
 typedef struct {
+	//numberOfBlock = 3;	// кол-во блоков в окружности
+	//windingCount = 1;		// кол-во слоёв (мотков) с увеличивающимся радиусом
+	//segCount=windingCount*numberOfBlock
 	int numberOfBlock, windingCount, segCount;
 	float *jitArray;
 	
 } geometry_info;
-
-//void fill_jitArray(geometry_info *info)
-//{
-//	info->jitArray = (float*)LocalAlloc(LPTR,
-//		info->segCount * info->windingCount * sizeof(float));
-//
-//	for (int i = 0; i < info->segCount; i += info->windingCount) {
-//		for (int j = 0; j < info->windingCount; j++) {
-//			info->jitArray[i + j] = lrandf(10.0f*j, 10.0f*j);
-//		}
-//	}
-//
-//}
-//void free_jitArray(geometry_info *info)
-//{
-//	LocalFree(info->jitArray);
-//}
 
 typedef struct {
 	size_t numberOfBlock, windingCount, posLength;
@@ -73,8 +55,7 @@ typedef struct {
 void alloc_ring(geometry_ring *pRing)
 {
 	pRing->posLength = pRing->windingCount * pRing->numberOfBlock;
-	size_t numberOfBytes = pRing->posLength * sizeof(mat4_t);
-	pRing->pos = (mat4_t*)malloc(numberOfBytes);
+	pRing->pos = (mat4_t*)malloc(pRing->posLength * sizeof(mat4_t));
 }
 
 void free_ring(geometry_ring *ring)
@@ -89,81 +70,41 @@ int generate_ring(float z, float radius, float jit,
 	int elementIndex = pRing->numberOfBlock*windingIndex;
 
 	const vec3_t scale = (vec3_t) { 0.65f, 0.05f, 1.0f };
-	float step = 360 / pRing->numberOfBlock;
 
-	for (float angle = 0.0f + jit; 
-		angle < 360.0f - jit; 
-		angle += step) {
+	float angle = 0.0f + jit;
+	float step = 360.0f / pRing->numberOfBlock;
+	
+	for (int i = 0; i < pRing->numberOfBlock; i++) {
 		const float angle_in_rad = angle*Deg2Rad;
 		lsincosf(angle_in_rad, &s, &c);
 		vec3_t offset = (vec3_t) { c * radius, s * radius, z };
 
-		mat4_t transform = get_transform(
+		pRing->pos[elementIndex] = get_transform(
 			m4_translation(offset),
 			m4_rotation_z((angle - 90.0f) * Deg2Rad),
 			m4_scaling(scale));
 
-		pRing->pos[elementIndex] = transform;
 		elementIndex += 1;
+		angle += step;
 	}
-
 	
 	return elementIndex;
 }
 
-float move_ring(float deltaZ, geometry_ring *ring)
+float move_ring(float deltaZ, geometry_ring *pRing)
 {
 	//ring->pos[i] = m4_mul(m4_translation((vec3_t) { 0.0f, 0.0f, deltaZ }), ring->pos[i]);
-	for (int i = 0; i < ring->posLength; i++)
-		ring->pos[i].m32 += deltaZ;
-	return ring->pos[0].m32;
+	for (int i = 0; i < pRing->posLength; i++)
+		pRing->pos[i].m32 += deltaZ;
+	return pRing->pos[0].m32;
 }
 
 void draw_ring(const geometry_ring *ring)
 {
 	for (int i = 0; i < ring->posLength; i++) {
 		glPushMatrix();
-		glMultMatrixf((const GLfloat*)&ring->pos[i]);
-		colorcube();
+		glMultMatrixf(&ring->pos[i].m00);
+		draw_plane();
 		glPopMatrix();
 	}
 }
-
-/*
-void draw_ring(float z, float radius, float jit, const geometry_info *info)
-{
-	const vec3_t scale = (vec3_t) { 0.65f, 0.05f, 1.0f };
-
-	float step = 360 / info->numberOfBlock;
-
-	for (float angle = 0.0 + jit; angle < 360 - jit; angle += step) {
-		const float angle_in_rad = angle*Deg2Rad;
-
-		float s, c;
-		lsincosf(angle_in_rad, &s, &c);
-		vec3_t offset = (vec3_t) { c * radius, s * radius, z };
-
-		g_transform = get_transform(
-			m4_translation(offset),
-			m4_rotation_z((angle - 90.0f) * Deg2Rad),
-			m4_scaling(scale));
-
-		glPushMatrix();
-		glMultMatrixf((const GLfloat*)&g_transform.m); // current * transform
-		colorcube();
-		glPopMatrix();
-	}
-}
-
-void draw_geom(const geometry_info *info)
-{
-	for (int depth = 0; depth < info->segCount; depth += info->windingCount) {
-		float z = -(float)depth / info->windingCount;
-		float currentRadius = 1.0f;
-		for (int w = 0; w < info->windingCount; w++) {
-			draw_ring(z, currentRadius, info->jitArray[depth + w], info);
-			currentRadius += 0.1f;
-		}
-	}
-}
-*/

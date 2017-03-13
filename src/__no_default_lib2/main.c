@@ -18,7 +18,6 @@
 #include "tests.h"
 #include "lshader.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
@@ -30,6 +29,8 @@ extern "C" {
 #define IS_MOVE
 //#define IS_SHADING
 
+extern GLenum g_ShadingProgram;
+
 /* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
 HWND  g_hWnd = NULL;
 HDC   g_hDC = NULL;
@@ -37,17 +38,15 @@ HGLRC g_hRC = NULL;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-vec3_t g_from, g_to, g_up;
-mat4_t g_view, g_projection, g_prj_view;
-
+const float g_speed = 1;
 float g_deltaTime;
 float g_cameraAngle;
 
-const float g_speed = 1;
-size_t g_segCount = 1;
-geometry_ring* g_rings;
+vec3_t g_from, g_to, g_up;
+mat4_t g_view, g_projection, g_prj_view;
 
-extern GLenum g_ShadingProgram;
+size_t g_segCount = 30;	
+geometry_ring *g_rings;
 
 void on_init()
 {
@@ -68,13 +67,11 @@ void on_init()
 
 	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
 	g_rings = (geometry_ring*)malloc(g_ringsSizeInBytes);
-	ZeroMemory(g_rings, g_ringsSizeInBytes);
 
-	size_t  structOffset = g_rings;
-	for (int i = 0; i < g_segCount; i++, structOffset += sizeof(geometry_ring)) {
-		geometry_ring* pRing = (geometry_ring*)(&g_rings[i]);
+	for (int i = 0; i < g_segCount; i++) {
+		geometry_ring *pRing = &g_rings[i];
 		pRing->numberOfBlock = 12;
-		pRing->windingCount = 1;
+		pRing->windingCount = 4;
 		alloc_ring(pRing);
 
 		float currentRadius = 1.0f;
