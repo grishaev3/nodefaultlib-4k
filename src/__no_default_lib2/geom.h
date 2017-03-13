@@ -3,6 +3,7 @@
 #include <GL/gl.h>
 #include "lmath.h"
 #include "math_3d.h"
+#include "lmemory.h"
 
 float ver[8][3] =
 {
@@ -55,12 +56,12 @@ typedef struct {
 void alloc_ring(geometry_ring *pRing)
 {
 	pRing->posLength = pRing->windingCount * pRing->numberOfBlock;
-	pRing->pos = (mat4_t*)malloc(pRing->posLength * sizeof(mat4_t));
+	pRing->pos = (mat4_t*)l_malloc(pRing->posLength * sizeof(mat4_t));
 }
 
 void free_ring(geometry_ring *ring)
 {
-	free(ring->pos);
+	GlobalFree(ring->pos);
 }
 
 int generate_ring(float z, float radius, float jit, 
