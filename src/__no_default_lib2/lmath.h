@@ -13,6 +13,11 @@ void lsrand(unsigned int seed)
 	next = seed;
 }
 
+int lrandi(int min, int max)
+{
+	return (lrand() % (max - min)) + min;
+}
+
 float lrandf(float a, float b) {
 	float random = ((float)lrand()) / (float)RAND_MAX;
 	float diff = b - a;

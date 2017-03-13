@@ -1,8 +1,10 @@
 #pragma once
-#include <stdio.h>
-#include <stdlib.h>
+
 
 #ifdef _DEBUG
+
+#include <stdio.h>
+#include <stdlib.h>
 
 int countlines(FILE *fp)
 {

@@ -2,6 +2,7 @@
 
 #include <GL/gl.h>
 #include <gl/glext.h>
+#include "io.h"
 
 /*
 PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
@@ -20,6 +21,15 @@ PFNGLGETATTRIBLOCATIONARBPROC glGetAttribLocationARB;
 
 PFNGLGETSHADERIVPROC glGetShaderiv;
 PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+
+PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+PFNGLGENBUFFERSPROC glGenBuffers;
+PFNGLBINDBUFFERPROC glBindBuffer;
+PFNGLBUFFERDATAPROC glBufferData;
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 
 GLenum g_ShadingProgram;
 
@@ -41,10 +51,55 @@ int IsExtEnable(const char * pName)
 
 	return 0;
 }
+
+int check_shader(GLuint shader)
+{
+	GLint success = 0;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+	if (!success) {
+		GLint logSize = 0;
+		int maxLength = MAX_PATH;
+		char *errorLog = (char*)LocalAlloc(LPTR, maxLength);
+		glGetShaderiv(shader, maxLength, &logSize);
+		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
+		LocalFree(errorLog);
+	}
+	return success;
+}
 #endif
 
+BOOL init_gl_vbo_arb()
+{
+	glGenVertexArrays=(PFNGLGENVERTEXARRAYSPROC)
+		wglGetProcAddress("glGenVertexArrays");
 
-BOOL init_gl_arb()
+	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)
+		wglGetProcAddress("glBindVertexArray");
+
+	glGenBuffers = (PFNGLGENBUFFERSPROC)
+		wglGetProcAddress("glGenBuffers");
+
+	glBindBuffer = (PFNGLBINDBUFFERPROC)
+		wglGetProcAddress("glBindBuffer");
+
+	glBufferData = (PFNGLBUFFERDATAPROC)
+		wglGetProcAddress("glBufferData");
+
+	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)
+		wglGetProcAddress("glEnableVertexAttribArray");
+
+	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)
+		wglGetProcAddress("glVertexAttribPointer");
+
+	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)
+		wglGetProcAddress("glDisableVertexAttribArray");
+
+
+	return TRUE;
+}
+
+BOOL init_gl_shader_arb()
 {
 #ifdef _DEBUG
 	if (!IsExtEnable("GL_ARB_multitexture"))
@@ -84,24 +139,6 @@ BOOL init_gl_arb()
 
 	return TRUE;
 }
-
-
-int check_shader(GLuint shader)
-{
-	GLint success = 0;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-
-	if (!success) {
-		GLint logSize = 0;
-		int maxLength = MAX_PATH;
-		char *errorLog = (char*)LocalAlloc(LPTR, maxLength);
-		glGetShaderiv(shader, maxLength, &logSize);
-		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-		LocalFree(errorLog);
-	}
-	return success;
-}
-
 
 int load_shaders()
 {

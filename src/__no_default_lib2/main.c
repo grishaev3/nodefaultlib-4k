@@ -5,6 +5,9 @@
 #ifdef _DEBUG
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "io.h"
+#include "tests.h"
 #else
 #endif // DEBUG
 
@@ -15,15 +18,11 @@
 #include "math_3d.h"
 #include "lmath.h"
 #include "geom.h"
-
-#include "io.h"
-#include "tests.h"
 #include "lshader.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
-#include "lmemory.h"
 int _fltused = 0x9875;
 #ifdef __cplusplus
 }
@@ -48,10 +47,12 @@ float g_cameraAngle;
 vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view;
 
-size_t g_segCount = 10;	
+float g_radius = 1.75f;
+float g_radiusCoeff = 0.075f;
+size_t g_segCount = 5;	
+size_t g_maxBlockCount = 12;
+size_t g_maxWindingCount = 5;
 geometry_ring *g_rings;
-size_t g_maxNumberOfBlock = 12;		// TODO: rename
-size_t g_maxWindingCount = 4;
 
 void on_init()
 {
@@ -59,7 +60,8 @@ void on_init()
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
 	lsrand(GetTickCount());
-	init_gl_arb();
+	init_gl_vbo_arb();
+	l_create_vertex_array();
 
 #ifdef IS_SHADING
 	if (!load_shaders()) return;
@@ -68,27 +70,20 @@ void on_init()
 	//g_geometry_info.numberOfBlock = 3;	// кол-во блоков в окружности
 	//g_geometry_info.windingCount = 1;		// кол-во слоёв (мотков)
 	//g_geometry_info.segCount = 10;		// длинна тунеля
-	//fill_jitArray(&g_geometry_info);
 
 	// memory usage
 	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
-	size_t geomSizeInBytes = (g_maxNumberOfBlock * g_maxWindingCount * sizeof(mat4_t)) * g_segCount;
+	size_t geomSizeInBytes = (g_maxBlockCount * g_maxWindingCount * sizeof(mat4_t)) * g_segCount;
 
 	l_heap_create(geomSizeInBytes, geomSizeInBytes * 2);
 	g_rings = (geometry_ring*)l_malloc(g_ringsSizeInBytes);
 
 	for (int i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
-		pRing->numberOfBlock = g_maxNumberOfBlock;
+		pRing->blockCount = g_maxBlockCount;
 		pRing->windingCount = g_maxWindingCount;
 		alloc_ring(pRing);
-
-		float currentRadius = 1.0f;
-		for (int windingIndex = 0; windingIndex < pRing->windingCount; windingIndex++) {
-			float jit = lrandf(-10.0f*windingIndex, 10.0f*windingIndex);
-			generate_ring(-(float)i, currentRadius, jit, windingIndex, pRing);
-			currentRadius += 0.1f;
-		}
+		generate_ring_winding((float)i, g_radius, g_radiusCoeff, pRing);
 	}
 
 	glPolygonMode(GL_FRONT, GL_LINE);
@@ -96,9 +91,10 @@ void on_init()
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
-	glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	//glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void on_resize(int maxX, int maxY)
@@ -109,7 +105,7 @@ void on_resize(int maxX, int maxY)
 
 void on_render()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	//float startFrame = glutGet(GLUT_ELAPSED_TIME);
 	float startFrame = 0;
@@ -124,20 +120,21 @@ void on_render()
 
 	// move camera
 #ifdef IS_MOVE
-	/*
+
 	float deltaCameraZ = 0.001f;
 	for (int i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
 		if (move_ring(deltaCameraZ, pRing) > 1.0f) {
-			float currentRadius = 1.0f;
-			for (int windingIndex = 0; windingIndex < pRing->windingCount; windingIndex++) {
-				float jit = lrandf(-10.0f*windingIndex, 10.0f*windingIndex);
-				generate_ring(-(float)i, currentRadius, jit, windingIndex, pRing);
-				currentRadius += 0.1f;
-			}
+
+			free_ring(pRing);
+			pRing->blockCount = g_maxBlockCount;
+			pRing->windingCount = g_maxWindingCount;
+			alloc_ring(pRing);
+
+			generate_ring_winding((float)g_segCount, g_radius, g_radiusCoeff, pRing);
 		}
 	}
-	*/
+
 #endif // IS_MOVE
 
 	// setup view
