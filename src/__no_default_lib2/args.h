@@ -2,6 +2,7 @@
 #include <winbase.h>
 #include <shellapi.h>
 
+#ifdef _DEBUG
 typedef struct args
 {
 	int argc;
@@ -20,6 +21,7 @@ void get_comand_line(args *args)
 	args->argv = szArglist;
 	LocalFree(szArglist);
 }
+#endif // _DEBUG
 
 /* 
 // win32 console entry point

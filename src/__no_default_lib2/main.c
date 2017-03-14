@@ -5,7 +5,6 @@
 #ifdef _DEBUG
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "io.h"
 #include "tests.h"
 #else
@@ -28,6 +27,7 @@ int _fltused = 0x9875;
 }
 #endif  /* __cplusplus */
 
+#define loop(n) for(size_t ii = 0; ii < n; ++ ii)
 #define IS_MOVE
 //#define IS_SHADING
 
@@ -141,7 +141,6 @@ void on_render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 	glLoadMatrixf((const GLfloat*)&g_prj_view.m);	// current
 
 	glMatrixMode(GL_MODELVIEW);
@@ -169,7 +168,7 @@ void on_render()
 void init_opengl(void)
 {
 	PIXELFORMATDESCRIPTOR pfd;
-	memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
+	ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
 
 	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
 	pfd.nVersion = 1;
@@ -243,7 +242,7 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	g_hWnd = CreateWindow(wc.lpszClassName,
 		L"__4Kb",
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		0, 0, 720, 480, 0, 0, hInstance, NULL);
+		0, 0, 720/2, 480/2, 0, 0, hInstance, NULL);
 
 	if (g_hWnd == NULL) return E_FAIL;
 

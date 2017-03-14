@@ -10,6 +10,19 @@ PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB;
 PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB;
 */
 
+PFNGLGENBUFFERSPROC glGenBuffers;
+PFNGLBINDBUFFERPROC glBindBuffer;
+PFNGLBUFFERDATAPROC glBufferData;
+/*
+PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+*/
+
+#ifdef IS_SHADING
 PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB;
 PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
 PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
@@ -21,15 +34,7 @@ PFNGLGETATTRIBLOCATIONARBPROC glGetAttribLocationARB;
 
 PFNGLGETSHADERIVPROC glGetShaderiv;
 PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
-
-PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
-PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
-PFNGLGENBUFFERSPROC glGenBuffers;
-PFNGLBINDBUFFERPROC glBindBuffer;
-PFNGLBUFFERDATAPROC glBufferData;
-PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
-PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+#endif
 
 GLenum g_ShadingProgram;
 
@@ -69,14 +74,8 @@ int check_shader(GLuint shader)
 }
 #endif
 
-BOOL init_gl_vbo_arb()
+void init_gl_vbo_arb()
 {
-	glGenVertexArrays=(PFNGLGENVERTEXARRAYSPROC)
-		wglGetProcAddress("glGenVertexArrays");
-
-	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)
-		wglGetProcAddress("glBindVertexArray");
-
 	glGenBuffers = (PFNGLGENBUFFERSPROC)
 		wglGetProcAddress("glGenBuffers");
 
@@ -86,6 +85,13 @@ BOOL init_gl_vbo_arb()
 	glBufferData = (PFNGLBUFFERDATAPROC)
 		wglGetProcAddress("glBufferData");
 
+	/*
+	glGenVertexArrays=(PFNGLGENVERTEXARRAYSPROC)
+		wglGetProcAddress("glGenVertexArrays");
+
+	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)
+		wglGetProcAddress("glBindVertexArray");
+
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)
 		wglGetProcAddress("glEnableVertexAttribArray");
 
@@ -94,12 +100,11 @@ BOOL init_gl_vbo_arb()
 
 	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)
 		wglGetProcAddress("glDisableVertexAttribArray");
-
-
-	return TRUE;
+	*/
 }
 
-BOOL init_gl_shader_arb()
+#ifdef IS_SHADING
+void init_gl_shader_arb()
 {
 #ifdef _DEBUG
 	if (!IsExtEnable("GL_ARB_multitexture"))
@@ -136,11 +141,9 @@ BOOL init_gl_shader_arb()
 		wglGetProcAddress("glGetShaderiv");
 	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)
 		wglGetProcAddress("glGetShaderInfoLog");
-
-	return TRUE;
 }
 
-int load_shaders()
+BOOL load_shaders()
 {
 	GLenum my_vertex_shader;
 	GLenum my_fragment_shader;
@@ -182,4 +185,7 @@ int load_shaders()
 
 	// Link The Program Object
 	glLinkProgramARB(g_ShadingProgram);
+
+	return TRUE;
 }
+#endif

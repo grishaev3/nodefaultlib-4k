@@ -9,12 +9,6 @@ typedef struct {
 	//blockCount = 3;	// кол-во блоков в окружности
 	//windingCount = 1;		// кол-во слоёв (мотков) с увеличивающимся радиусом
 	//segCount=windingCount*blockCount
-	int blockCount, windingCount, segCount;
-	float *jitArray;
-	
-} geometry_info;
-
-typedef struct {
 	size_t blockCount, windingCount, posLength;
 	mat4_t *pos;
 } geometry_ring;
@@ -30,7 +24,7 @@ void free_ring(geometry_ring *ring)
 	l_free(ring->pos);
 }
 
-int generate_ring(float z, float radius, float jit, 
+void generate_ring(float z, float radius, float jit, 
 	int windingIndex, geometry_ring *pRing)
 {
 	float s, c;
@@ -54,8 +48,6 @@ int generate_ring(float z, float radius, float jit,
 		elementIndex += 1;
 		angle += step;
 	}
-	
-	return elementIndex;
 }
 
 void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ring *pRing)
@@ -80,7 +72,7 @@ void draw_ring(const geometry_ring *ring)
 {
 	for (int i = 0; i < ring->posLength; i++) {
 		glPushMatrix();
-		glMultMatrixf(&ring->pos[i].m00);
+		glMultMatrixf(&ring->pos[i]);
 		l_draw_plane();
 		glPopMatrix();
 	}

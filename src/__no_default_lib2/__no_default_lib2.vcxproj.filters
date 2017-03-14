@@ -35,9 +35,6 @@
     <ClInclude Include="geom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sse_mathfun.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
