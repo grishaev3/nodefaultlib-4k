@@ -2,6 +2,9 @@
 #pragma comment(linker, "/MERGE:.rdata=.text")
 #pragma comment(linker, "/SECTION:.text,EWR")
 
+#define WIN32_LEAN_AND_MEAN
+#define WIN32_EXTRA_LEAN
+
 #ifdef _DEBUG
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +30,6 @@ int _fltused = 0x9875;
 }
 #endif  /* __cplusplus */
 
-#define loop(n) for(size_t ii = 0; ii < n; ++ ii)
 #define IS_MOVE
 //#define IS_SHADING
 
@@ -178,44 +180,20 @@ void init_opengl(void)
 	pfd.cDepthBits = 24;
 
 	g_hDC = GetDC(g_hWnd);
-	GLuint iPixelFormat = ChoosePixelFormat(g_hDC, &pfd);
-
-	if (iPixelFormat != 0) {
-		PIXELFORMATDESCRIPTOR bestMatch_pfd;
-		DescribePixelFormat(g_hDC, iPixelFormat, sizeof(pfd), &bestMatch_pfd);
-
-		if (bestMatch_pfd.cDepthBits < pfd.cDepthBits) {
-			return;
-		}
-
-		if (SetPixelFormat(g_hDC, iPixelFormat, &pfd) == FALSE) {
-			DWORD dwErrorCode = GetLastError();
-			return;
-		}
-	}
-	else {
-		DWORD dwErrorCode = GetLastError();
-		return;
-	}
-
+	SetPixelFormat(g_hDC, ChoosePixelFormat(g_hDC, &pfd), &pfd);
 	g_hRC = wglCreateContext(g_hDC);
 	wglMakeCurrent(g_hDC, g_hRC);
 }
 
 int on_exit(void)
 {
-	if (g_hRC != NULL) {
-		wglMakeCurrent(NULL, NULL);
-		wglDeleteContext(g_hRC);
-		g_hRC = NULL;
-	}
-
-	if (g_hDC != NULL) {
-		ReleaseDC(g_hWnd, g_hDC);
-		g_hDC = NULL;
-	}
-
 	l_heap_destroy();
+
+	wglMakeCurrent(NULL, NULL);
+	wglDeleteContext(g_hRC);
+	
+	ReleaseDC(g_hWnd, g_hDC);
+	g_hDC = NULL;
 
 	return 0;
 }

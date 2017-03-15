@@ -1,5 +1,17 @@
 #pragma once
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#ifndef Deg2Rad
+#define Deg2Rad 0.0174532925199433
+#endif
+
+#ifndef RAND_MAX
+#define RAND_MAX	0x7fff
+#endif
+
 static unsigned long int next = 1;
 
 int lrand(void) // RAND_MAX assumed to be 32767

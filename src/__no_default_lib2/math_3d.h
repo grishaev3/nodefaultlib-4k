@@ -78,18 +78,6 @@ v1.0  2016-02-15  Initial release
 #include <math.h>
 #include "lmath.h"
 
-// Define PI directly because we would need to define the _BSD_SOURCE or
-// _XOPEN_SOURCE feature test macros to get it from math.h. That would be a
-// rather harsh dependency. So we define it directly if necessary.
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-#ifndef Deg2Rad
-#define Deg2Rad 0.0174532925199433
-#endif
-
-
 //
 // 3D vectors
 // 

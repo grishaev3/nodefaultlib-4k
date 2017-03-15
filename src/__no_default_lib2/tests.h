@@ -1,10 +1,15 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
+
 
 
 #ifdef _DEBUG
+
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "lmath.h"
 
 void write(char * fmtstr, ...)
 {
