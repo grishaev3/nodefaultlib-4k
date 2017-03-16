@@ -29,9 +29,6 @@
     <ClInclude Include="bounding_box.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lshader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="geom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -48,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="draw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

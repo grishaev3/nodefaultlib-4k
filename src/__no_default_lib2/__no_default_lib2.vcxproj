@@ -195,7 +195,7 @@
     <ClInclude Include="io.h" />
     <ClInclude Include="lmath.h" />
     <ClInclude Include="lmemory.h" />
-    <ClInclude Include="lshader.h" />
+    <ClInclude Include="lext.h" />
     <ClInclude Include="math_3d.h" />
     <ClInclude Include="tests.h" />
   </ItemGroup>

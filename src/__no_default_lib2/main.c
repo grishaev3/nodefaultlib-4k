@@ -20,7 +20,7 @@
 #include "math_3d.h"
 #include "lmath.h"
 #include "geom.h"
-#include "lshader.h"
+#include "lext.h"
 
 #ifdef __cplusplus
 extern "C" {

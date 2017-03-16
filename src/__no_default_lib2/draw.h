@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GL/gl.h>
-#include "lshader.h"
+#include "lext.h"
 
 GLuint vertexbuffer;
 GLuint indexbuffer;
