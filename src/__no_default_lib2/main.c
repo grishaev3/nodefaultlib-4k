@@ -49,10 +49,10 @@ float g_cameraAngle;
 vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view;
 
-float g_radius = 1.75f;
-float g_radiusCoeff = 0.075f;
+float g_radius = 2.0f;
+float g_radiusCoeff = 0.1f;
 size_t g_segCount = 5;	
-size_t g_maxBlockCount = 12;
+size_t g_maxBlockCount = 16;
 size_t g_maxWindingCount = 5;
 geometry_ring *g_rings;
 
