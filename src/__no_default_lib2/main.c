@@ -15,6 +15,7 @@
 
 #include <windows.h>
 #include <gl/GL.h>
+#include <stdint.h>
 
 #define MATH_3D_IMPLEMENTATION
 #include "math_3d.h"
@@ -25,7 +26,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
-int _fltused = 0x9875;
+	int _fltused = 0x9875;
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
@@ -42,6 +43,7 @@ HGLRC g_hRC = NULL;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+int g_frames_per_second = 60;
 const float g_speed = 1;
 float g_deltaTime;
 float g_cameraAngle;
@@ -51,7 +53,7 @@ mat4_t g_view, g_projection, g_prj_view;
 
 float g_radius = 2.0f;
 float g_radiusCoeff = 0.1f;
-size_t g_segCount = 5;	
+size_t g_segCount = 5;
 size_t g_maxBlockCount = 16;
 size_t g_maxWindingCount = 5;
 geometry_ring *g_rings;
@@ -97,6 +99,8 @@ void on_init()
 	//glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_MULTISAMPLE_ARB);
 }
 
 void on_resize(int maxX, int maxY)
@@ -123,7 +127,7 @@ void on_render()
 	// move camera
 #ifdef IS_MOVE
 
-	float deltaCameraZ = 0.001f;
+	float deltaCameraZ = 0.01f;
 	for (int i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
 		if (move_ring(deltaCameraZ, pRing) > 1.0f) {
@@ -183,6 +187,8 @@ void init_opengl(void)
 	SetPixelFormat(g_hDC, ChoosePixelFormat(g_hDC, &pfd), &pfd);
 	g_hRC = wglCreateContext(g_hDC);
 	wglMakeCurrent(g_hDC, g_hRC);
+
+	init_multi_sample();
 }
 
 int on_exit(void)
@@ -191,7 +197,7 @@ int on_exit(void)
 
 	wglMakeCurrent(NULL, NULL);
 	wglDeleteContext(g_hRC);
-	
+
 	ReleaseDC(g_hWnd, g_hDC);
 	g_hDC = NULL;
 
@@ -220,13 +226,17 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	g_hWnd = CreateWindow(wc.lpszClassName,
 		L"__4Kb",
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		0, 0, 720/2, 480/2, 0, 0, hInstance, NULL);
+		0, 0, 720 / 2, 480 / 2, 0, 0, hInstance, NULL);
 
 	if (g_hWnd == NULL) return E_FAIL;
 
 	init_opengl();
 
 	on_init();
+
+	int32_t sleep_time = 0;
+	int32_t next_game_tick = GetTickCount();
+	const uint32_t SKIP_TICKS = (1000 / g_frames_per_second);
 
 	while (TRUE) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -235,7 +245,14 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 		}
 		if (msg.message == WM_QUIT)
 			break;
+
 		on_render();
+		
+		next_game_tick += SKIP_TICKS;
+		sleep_time = next_game_tick - GetTickCount();
+		if (sleep_time >= 0) {
+			Sleep(sleep_time);
+		}
 	}
 
 	return on_exit();
