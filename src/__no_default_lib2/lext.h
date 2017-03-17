@@ -15,8 +15,8 @@ BOOL arbMultisampleSupported = FALSE;
 int arbMultisampleFormat = 0;
 
 
-#ifdef DEBUG
-#define NUMFUNCIONES 15
+#ifdef _DEBUG
+#define NUMFUNCIONES 17
 #else
 #define NUMFUNCIONES 13
 #endif
@@ -39,9 +39,11 @@ extern void *myglfunc[NUMFUNCIONES];
 #define glBufferData           ((PFNGLGETUNIFORMLOCATIONARBPROC)glf[12])
 
 
-#ifdef DEBUG
-#define oglGetObjectParameteriv         ((PFNGLGETOBJECTPARAMETERIVARBPROC)myglfunc[13])
-#define oglGetInfoLog                   ((PFNGLGETINFOLOGARBPROC)myglfunc[14])
+#ifdef _DEBUG
+#define oglGetObjectParameteriv         ((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[13])
+#define oglGetInfoLog                   ((PFNGLGETINFOLOGARBPROC)glf[14])
+#define glGetShaderiv                   ((PFNGLGETSHADERIVPROC)glf[15])
+#define glGetShaderInfoLog                   ((PFNGLGETSHADERINFOLOGPROC)glf[16])
 #endif
 
 
@@ -61,9 +63,11 @@ static char *strs[] = {
 	"glBindBuffer",
 	"glBufferData",
 	//--
-#ifdef DEBUG
+#ifdef _DEBUG
 	"glGetObjectParameterivARB",
 	"glGetInfoLogARB",
+	"glGetShaderiv",
+	"glGetShaderInfoLog"
 #endif
 };
 
