@@ -64,7 +64,7 @@ void on_init()
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
 	lsrand(GetTickCount());
-	init_gl_vbo_arb();
+	init_gl_ext();
 	l_create_vertex_array();
 
 #ifdef IS_SHADING
@@ -173,9 +173,10 @@ void on_render()
 
 void init_opengl(void)
 {
+	int pixelFormat;
+
 	PIXELFORMATDESCRIPTOR pfd;
 	ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
-
 	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
 	pfd.nVersion = 1;
 	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
@@ -184,11 +185,19 @@ void init_opengl(void)
 	pfd.cDepthBits = 24;
 
 	g_hDC = GetDC(g_hWnd);
-	SetPixelFormat(g_hDC, ChoosePixelFormat(g_hDC, &pfd), &pfd);
+	pixelFormat = ChoosePixelFormat(g_hDC, &pfd);
+	SetPixelFormat(g_hDC, pixelFormat, &pfd);
 	g_hRC = wglCreateContext(g_hDC);
 	wglMakeCurrent(g_hDC, g_hRC);
 
-	init_multi_sample();
+	pixelFormat = get_pixel_format(g_hDC);
+	if (pixelFormat != 0) {
+		wglMakeCurrent(g_hDC, g_hRC);
+		wglDeleteContext(g_hRC);
+		SetPixelFormat(g_hDC, pixelFormat, &pfd);
+		g_hRC = wglCreateContext(g_hDC);
+		wglMakeCurrent(g_hDC, g_hRC);
+	}
 }
 
 int on_exit(void)
@@ -197,10 +206,8 @@ int on_exit(void)
 
 	wglMakeCurrent(NULL, NULL);
 	wglDeleteContext(g_hRC);
-
 	ReleaseDC(g_hWnd, g_hDC);
 	g_hDC = NULL;
-
 	return 0;
 }
 
@@ -247,7 +254,7 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 			break;
 
 		on_render();
-		
+
 		next_game_tick += SKIP_TICKS;
 		sleep_time = next_game_tick - GetTickCount();
 		if (sleep_time >= 0) {

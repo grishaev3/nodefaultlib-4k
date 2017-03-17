@@ -7,13 +7,6 @@
 #include <gl/wglext.h>
 #include "io.h"
 
-// Declarations We'll Use
-#define WGL_SAMPLE_BUFFERS_ARB  0x2041
-#define WGL_SAMPLES_ARB     0x2042
-
-BOOL arbMultisampleSupported = FALSE;
-int arbMultisampleFormat = 0;
-
 
 #ifdef _DEBUG
 #define NUMFUNCIONES 17
@@ -23,27 +16,27 @@ int arbMultisampleFormat = 0;
 
 extern void *myglfunc[NUMFUNCIONES];
 
-#define oglCreateProgram	            ((PFNGLCREATEPROGRAMPROC)glf[0])
-#define oglCreateShader		            ((PFNGLCREATESHADERPROC)glf[1])
-#define oglShaderSource                 ((PFNGLSHADERSOURCEPROC)glf[2])
-#define oglCompileShader                ((PFNGLCOMPILESHADERPROC)glf[3])
-#define oglAttachShader                 ((PFNGLATTACHSHADERPROC)glf[4])
-#define oglLinkProgram                  ((PFNGLLINKPROGRAMPROC)glf[5])
-#define oglUseProgram                   ((PFNGLUSEPROGRAMPROC)glf[6])
-#define oglUniform4fv                   ((PFNGLUNIFORM4FVPROC)glf[7])
-#define oglUniform1i                    ((PFNGLUNIFORM1IPROC)glf[8])
-#define oglGetUniformLocation           ((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
+#define oglCreateProgram		((PFNGLCREATEPROGRAMPROC)glf[0])
+#define oglCreateShader			((PFNGLCREATESHADERPROC)glf[1])
+#define oglShaderSource			((PFNGLSHADERSOURCEPROC)glf[2])
+#define oglCompileShader		((PFNGLCOMPILESHADERPROC)glf[3])
+#define oglAttachShader			((PFNGLATTACHSHADERPROC)glf[4])
+#define oglLinkProgram			((PFNGLLINKPROGRAMPROC)glf[5])
+#define oglUseProgram			((PFNGLUSEPROGRAMPROC)glf[6])
+#define oglUniform4fv			((PFNGLUNIFORM4FVPROC)glf[7])
+#define oglUniform1i			((PFNGLUNIFORM1IPROC)glf[8])
+#define oglGetUniformLocation	((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
 
-#define glGenBuffers           ((PFNGLGETUNIFORMLOCATIONARBPROC)glf[10])
-#define glBindBuffer           ((PFNGLGETUNIFORMLOCATIONARBPROC)glf[11])
-#define glBufferData           ((PFNGLGETUNIFORMLOCATIONARBPROC)glf[12])
+#define glGenBuffers			((PFNGLGETUNIFORMLOCATIONARBPROC)glf[10])
+#define glBindBuffer			((PFNGLGETUNIFORMLOCATIONARBPROC)glf[11])
+#define glBufferData			((PFNGLGETUNIFORMLOCATIONARBPROC)glf[12])
 
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv         ((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[13])
-#define oglGetInfoLog                   ((PFNGLGETINFOLOGARBPROC)glf[14])
-#define glGetShaderiv                   ((PFNGLGETSHADERIVPROC)glf[15])
-#define glGetShaderInfoLog                   ((PFNGLGETSHADERINFOLOGPROC)glf[16])
+#define oglGetObjectParameteriv	((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[13])
+#define oglGetInfoLog			((PFNGLGETINFOLOGARBPROC)glf[14])
+#define glGetShaderiv			((PFNGLGETSHADERIVPROC)glf[15])
+#define glGetShaderInfoLog		((PFNGLGETSHADERINFOLOGPROC)glf[16])
 #endif
 
 
@@ -62,6 +55,7 @@ static char *strs[] = {
 	"glGenBuffers",
 	"glBindBuffer",
 	"glBufferData",
+
 	//--
 #ifdef _DEBUG
 	"glGetObjectParameterivARB",
@@ -78,7 +72,7 @@ extern HWND  g_hWnd;
 GLenum g_ShadingProgram;
 
 #ifdef _DEBUG
-int IsExtEnable(const char * pName)
+int gl_is_extension_supported(const char * pName)
 {
 	// Получить строку со списком доступных расширений
 	const char * ch = (const char *)glGetString(GL_EXTENSIONS);
@@ -113,7 +107,7 @@ int check_shader(GLuint shader)
 }
 #endif
 
-void init_gl_vbo_arb()
+void init_gl_ext()
 {
 	for (int i = 0; i < NUMFUNCIONES; i++) {
 		glf[i] = wglGetProcAddress(strs[i]);
@@ -127,16 +121,23 @@ BOOL wgl_is_extension_supported(const char *extension)
 {
 	const size_t extlen = strlen(extension);
 	const char *supported = NULL;
+	GLenum err;
 
 	// Try To Use wglGetExtensionStringARB On Current DC, If Possible
-	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionsStringARB");
+	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionStringARB");
+	err = glGetError();
 
 	if (wglGetExtString)
-		supported = ((char*(__stdcall*)(HDC))wglGetExtString)(wglGetCurrentDC());
+	{
+		HDC wgl_get_current_dc = wglGetCurrentDC();
+		supported = ((char*(__stdcall*)(HDC))wglGetExtString)(wgl_get_current_dc);
+	}
 
 	// If That Failed, Try Standard Opengl Extensions String
-	if (supported == NULL)
-		supported = (char*)glGetString(GL_EXTENSIONS);
+	if (supported == NULL) {
+		supported = (const char*)glGetString(GL_EXTENSIONS);
+		err = glGetError();
+	}
 
 	// If That Failed Too, Must Be No Extensions Supported
 	if (supported == NULL)
@@ -146,7 +147,7 @@ BOOL wgl_is_extension_supported(const char *extension)
 	for (const char* p = supported; ; p++)
 	{
 		// Advance p Up To The Next Possible Match
-		p = StrStr(p, extension);
+		p = StrStrA(p, extension);
 
 		if (p == NULL)
 			return FALSE;                       // No Match
@@ -162,28 +163,17 @@ BOOL wgl_is_extension_supported(const char *extension)
 	}
 }
 
-void init_multi_sample()
+int get_pixel_format(HDC hDC)
 {
-	// See If The String Exists In WGL!
-	if (!wgl_is_extension_supported("WGL_ARB_multisample"))
-	{
-		arbMultisampleSupported = FALSE;
+	if (!gl_is_extension_supported("GL_ARB_multisample") &&
+		!wgl_is_extension_supported("GL_ARB_multisample")) {
 		return FALSE;
 	}
 
-	// Get Our Pixel Format
 	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB =
 		(PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 
-	if (!wglChoosePixelFormatARB)
-	{
-		// We Didn't Find Support For Multisampling, Set Our Flag And Exit Out.
-		arbMultisampleSupported = FALSE;
-		return FALSE;
-	}
-
-	// Get Our Current Device Context. We Need This In Order To Ask The OpenGL Window What Attributes We Have
-	HDC hDC = GetDC(g_hWnd);
+	if (!wglChoosePixelFormatARB) return FALSE;
 
 	int pixelFormat;
 	BOOL valid;
@@ -213,9 +203,7 @@ void init_multi_sample()
 	// if We Returned True, And Our Format Count Is Greater Than 1
 	if (valid && numFormats >= 1)
 	{
-		arbMultisampleSupported = TRUE;
-		arbMultisampleFormat = pixelFormat;
-		return arbMultisampleSupported;
+		return pixelFormat;
 	}
 
 	// Our Pixel Format With 4 Samples Failed, Test For 2 Samples
@@ -223,13 +211,10 @@ void init_multi_sample()
 	valid = wglChoosePixelFormatARB(hDC, iAttributes, fAttributes, 1, &pixelFormat, &numFormats);
 	if (valid && numFormats >= 1)
 	{
-		arbMultisampleSupported = TRUE;
-		arbMultisampleFormat = pixelFormat;
-		return arbMultisampleSupported;
+		return pixelFormat;
 	}
 
-	// Return The Valid Format
-	return  arbMultisampleSupported;
+	return  0;
 }
 
 
