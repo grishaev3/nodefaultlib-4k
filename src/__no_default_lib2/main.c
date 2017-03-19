@@ -34,6 +34,7 @@ extern "C" {
 #define IS_MOVE
 //#define IS_SHADING
 
+extern GLuint g_framebuffer;
 extern GLenum g_ShadingProgram;
 
 /* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
@@ -58,14 +59,20 @@ size_t g_maxBlockCount = 16;
 size_t g_maxWindingCount = 5;
 geometry_ring *g_rings;
 
-void on_init()
+
+uint32_t g_maxX = 1024, g_maxY = 640;
+
+BOOL on_init()
 {
+	lsrand(GetTickCount());
 	g_from = vec3(0.0, 0.0, 1.0f);
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
-	lsrand(GetTickCount());
-	init_gl_ext();
+	if (!init_gl_ext()) return FALSE;
+
 	l_create_vertex_array();
+
+	gl_framebuffer();
 
 #ifdef IS_SHADING
 	if (!load_shaders()) return;
@@ -100,13 +107,19 @@ void on_init()
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_MULTISAMPLE_ARB);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void on_resize(int maxX, int maxY)
 {
+	g_maxX = maxX;
+	g_maxY = maxY;
 	glViewport(0, 0, maxX, maxY);
 	g_projection = m4_perspective(90.0f, (float)maxX / maxY, 0.2f, 100.0f);
+
+	/* FrameBuffer gen */
+	if (g_isExtensionInit) gl_framebuffer();
 }
 
 void on_render()
@@ -143,7 +156,8 @@ void on_render()
 
 #endif // IS_MOVE
 
-	// setup view
+	// 1. Draw scene as normal in multisampled buffers
+	glBindFramebuffer(GL_FRAMEBUFFER, g_framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
@@ -158,6 +172,13 @@ void on_render()
 #endif // IS_SHADING
 	for (int i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i]);
+
+
+	// 2. Now blit multisampled buffer(s) to default framebuffers
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_framebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, g_maxX, g_maxY, 0, 0,
+		g_maxX, g_maxY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	/*glBegin(GL_TRIANGLES);
 	glVertex3f(1.0f, 1.0f, -1.0f);
@@ -189,15 +210,6 @@ void init_opengl(void)
 	SetPixelFormat(g_hDC, pixelFormat, &pfd);
 	g_hRC = wglCreateContext(g_hDC);
 	wglMakeCurrent(g_hDC, g_hRC);
-
-	pixelFormat = get_pixel_format(g_hDC);
-	if (pixelFormat != 0) {
-		wglMakeCurrent(g_hDC, g_hRC);
-		wglDeleteContext(g_hRC);
-		SetPixelFormat(g_hDC, pixelFormat, &pfd);
-		g_hRC = wglCreateContext(g_hDC);
-		wglMakeCurrent(g_hDC, g_hRC);
-	}
 }
 
 int on_exit(void)
@@ -233,13 +245,13 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	g_hWnd = CreateWindow(wc.lpszClassName,
 		L"__4Kb",
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		0, 0, 720 / 2, 480 / 2, 0, 0, hInstance, NULL);
+		0, 0, g_maxX, g_maxY, 0, 0, hInstance, NULL);
 
 	if (g_hWnd == NULL) return E_FAIL;
 
 	init_opengl();
 
-	on_init();
+	if (!on_init()) return on_exit();
 
 	int32_t sleep_time = 0;
 	int32_t next_game_tick = GetTickCount();

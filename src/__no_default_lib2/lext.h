@@ -5,38 +5,48 @@
 #include <GL/gl.h>
 #include <gl/glext.h>
 #include <gl/wglext.h>
-#include "io.h"
-
 
 #ifdef _DEBUG
-#define NUMFUNCIONES 17
+#define NUMFUNCIONES 28
 #else
-#define NUMFUNCIONES 13
+#define NUMFUNCIONES 24
 #endif
 
-extern void *myglfunc[NUMFUNCIONES];
+void *glf[NUMFUNCIONES];
 
-#define oglCreateProgram		((PFNGLCREATEPROGRAMPROC)glf[0])
-#define oglCreateShader			((PFNGLCREATESHADERPROC)glf[1])
-#define oglShaderSource			((PFNGLSHADERSOURCEPROC)glf[2])
-#define oglCompileShader		((PFNGLCOMPILESHADERPROC)glf[3])
-#define oglAttachShader			((PFNGLATTACHSHADERPROC)glf[4])
-#define oglLinkProgram			((PFNGLLINKPROGRAMPROC)glf[5])
-#define oglUseProgram			((PFNGLUSEPROGRAMPROC)glf[6])
-#define oglUniform4fv			((PFNGLUNIFORM4FVPROC)glf[7])
-#define oglUniform1i			((PFNGLUNIFORM1IPROC)glf[8])
-#define oglGetUniformLocation	((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
+#define oglCreateProgram					((PFNGLCREATEPROGRAMPROC)glf[0])
+#define oglCreateShader						((PFNGLCREATESHADERPROC)glf[1])
+#define oglShaderSource						((PFNGLSHADERSOURCEPROC)glf[2])
+#define oglCompileShader					((PFNGLCOMPILESHADERPROC)glf[3])
+#define oglAttachShader						((PFNGLATTACHSHADERPROC)glf[4])
+#define oglLinkProgram						((PFNGLLINKPROGRAMPROC)glf[5])
+#define oglUseProgram						((PFNGLUSEPROGRAMPROC)glf[6])
+#define oglUniform4fv						((PFNGLUNIFORM4FVPROC)glf[7])
+#define oglUniform1i						((PFNGLUNIFORM1IPROC)glf[8])
+#define oglGetUniformLocation				((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
 
-#define glGenBuffers			((PFNGLGETUNIFORMLOCATIONARBPROC)glf[10])
-#define glBindBuffer			((PFNGLGETUNIFORMLOCATIONARBPROC)glf[11])
-#define glBufferData			((PFNGLGETUNIFORMLOCATIONARBPROC)glf[12])
+#define glGenBuffers						((PFNGLGETUNIFORMLOCATIONARBPROC)glf[10])
+#define glBindBuffer						((PFNGLGETUNIFORMLOCATIONARBPROC)glf[11])
+#define glBufferData						((PFNGLGETUNIFORMLOCATIONARBPROC)glf[12])
 
+#define glGenFramebuffers					((PFNGLGENFRAMEBUFFERSPROC)glf[13])
+#define glBindFramebuffer					((PFNGLBINDFRAMEBUFFERPROC)glf[14])
+#define glFramebufferTexture2D				((PFNGLFRAMEBUFFERTEXTURE2DPROC)glf[15])
+#define glRenderbufferStorageMultisample	((PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)glf[16])
+#define glFramebufferRenderbuffer			((PFNGLFRAMEBUFFERRENDERBUFFERPROC)glf[17])
+#define glCheckFramebufferStatus			((PFNGLCHECKFRAMEBUFFERSTATUSPROC)glf[18])
+
+#define glGenRenderbuffers					((PFNGLGENRENDERBUFFERSPROC)glf[19])
+#define glBindRenderbuffer					((PFNGLBINDRENDERBUFFERPROC)glf[20])
+#define glBindRenderbuffer					((PFNGLBINDRENDERBUFFERPROC)glf[21])
+#define glBlitFramebuffer					((PFNGLBLITFRAMEBUFFERPROC)glf[22])
+#define glTexImage2DMultisample					((PFNGLTEXIMAGE2DMULTISAMPLEPROC)glf[23])
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv	((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[13])
-#define oglGetInfoLog			((PFNGLGETINFOLOGARBPROC)glf[14])
-#define glGetShaderiv			((PFNGLGETSHADERIVPROC)glf[15])
-#define glGetShaderInfoLog		((PFNGLGETSHADERINFOLOGPROC)glf[16])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[24])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[25])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[26])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[27])
 #endif
 
 
@@ -56,6 +66,18 @@ static char *strs[] = {
 	"glBindBuffer",
 	"glBufferData",
 
+	"glGenFramebuffers",
+	"glBindFramebuffer",
+	"glFramebufferTexture2D",
+	"glRenderbufferStorageMultisample",
+	"glFramebufferRenderbuffer",
+	"glCheckFramebufferStatus",
+	"glGenRenderbuffers",
+	"glBindRenderbuffer",
+	"glBindRenderbuffer",
+	"glBlitFramebuffer",
+	"glTexImage2DMultisample",
+
 	//--
 #ifdef _DEBUG
 	"glGetObjectParameterivARB",
@@ -65,108 +87,53 @@ static char *strs[] = {
 #endif
 };
 
-#define NUMFUNCIONES	13
-void *glf[NUMFUNCIONES];
+
 
 extern HWND  g_hWnd;
+extern uint32_t g_maxX;
+extern uint32_t g_maxY;
 GLenum g_ShadingProgram;
+GLuint g_framebuffer;
+GLboolean g_isExtensionInit = 0;
 
 #ifdef _DEBUG
-int gl_is_extension_supported(const char * pName)
+BOOL gl_is_extension_supported(const char * extension)
 {
-	// Получить строку со списком доступных расширений
-	const char * ch = (const char *)glGetString(GL_EXTENSIONS);
-
-	size_t size = strlen(pName);
-	while (ch)
-	{
-		if (!strncmp(ch, pName, size) && (*(ch + size) == 0 || *(ch + size) == ' '))
-			return 1;
-		ch = strchr(ch, ' ');
-		if (ch)
-			ch++;
+	size_t extlen = strlen(extension);
+	const char *supported = (const char *)glGetString(GL_EXTENSIONS);
+	while (supported) {
+		if (!strncmp(supported, extension, extlen) &&
+			(*(supported + extlen) == 0 || *(supported + extlen) == ' '))
+			return TRUE;
+		supported = strchr(supported, ' ');
+		if (supported)
+			supported++;
 	}
 
-	return 0;
-}
-
-int check_shader(GLuint shader)
-{
-	GLint success = 0;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-
-	if (!success) {
-		GLint logSize = 0;
-		int maxLength = MAX_PATH;
-		char *errorLog = (char*)LocalAlloc(LPTR, maxLength);
-		glGetShaderiv(shader, maxLength, &logSize);
-		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-		LocalFree(errorLog);
-	}
-	return success;
-}
-#endif
-
-void init_gl_ext()
-{
-	for (int i = 0; i < NUMFUNCIONES; i++) {
-		glf[i] = wglGetProcAddress(strs[i]);
-		if (!glf[i])
-			return 0;
-	}
-	return 1;
+	return FALSE;
 }
 
 BOOL wgl_is_extension_supported(const char *extension)
 {
 	const size_t extlen = strlen(extension);
 	const char *supported = NULL;
-	GLenum err;
 
-	// Try To Use wglGetExtensionStringARB On Current DC, If Possible
 	PROC wglGetExtString = wglGetProcAddress("wglGetExtensionStringARB");
-	err = glGetError();
 
-	if (wglGetExtString)
-	{
+	if (wglGetExtString) {
 		HDC wgl_get_current_dc = wglGetCurrentDC();
 		supported = ((char*(__stdcall*)(HDC))wglGetExtString)(wgl_get_current_dc);
 	}
 
-	// If That Failed, Try Standard Opengl Extensions String
-	if (supported == NULL) {
-		supported = (const char*)glGetString(GL_EXTENSIONS);
-		err = glGetError();
-	}
 
-	// If That Failed Too, Must Be No Extensions Supported
 	if (supported == NULL)
 		return FALSE;
-
-	// Begin Examination At Start Of String, Increment By 1 On False Match
-	for (const char* p = supported; ; p++)
-	{
-		// Advance p Up To The Next Possible Match
-		p = StrStrA(p, extension);
-
-		if (p == NULL)
-			return FALSE;                       // No Match
-
-												// Make Sure That Match Is At The Start Of The String Or That
-												// The Previous Char Is A Space, Or Else We Could Accidentally
-												// Match "wglFunkywglExtension" With "wglExtension"
-
-												// Also, Make Sure That The Following Character Is Space Or NULL
-												// Or Else "wglExtensionTwo" Might Match "wglExtension"
-		if ((p == supported || p[-1] == ' ') && (p[extlen] == '\0' || p[extlen] == ' '))
-			return TRUE;                        // Match
-	}
+	return TRUE;
 }
 
 int get_pixel_format(HDC hDC)
 {
-	if (!gl_is_extension_supported("GL_ARB_multisample") &&
-		!wgl_is_extension_supported("GL_ARB_multisample")) {
+	if (!wgl_is_extension_supported("GL_ARB_multisample")) {
 		return FALSE;
 	}
 
@@ -217,7 +184,71 @@ int get_pixel_format(HDC hDC)
 	return  0;
 }
 
+int check_shader(GLuint shader)
+{
+	GLint success = 0;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
+	if (!success) {
+		GLint logSize = 0;
+		int maxLength = MAX_PATH;
+		char *errorLog = (char*)LocalAlloc(LPTR, maxLength);
+		glGetShaderiv(shader, maxLength, &logSize);
+		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
+		LocalFree(errorLog);
+	}
+	return success;
+}
+#endif
+
+BOOL init_gl_ext()
+{
+	for (int i = 0; i < NUMFUNCIONES; i++) {
+		glf[i] = wglGetProcAddress(strs[i]);
+		if (!glf[i])
+			return FALSE;
+	}
+	return g_isExtensionInit = TRUE;
+}
+
+
+/* https://learnopengl.com/#!Advanced-OpenGL/Anti-Aliasing */
+GLuint generateMultiSampleTexture(GLuint samples)
+{
+	GLuint texture;
+	glGenTextures(1, &texture);
+
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB,
+		g_maxX, g_maxY, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+	return texture;
+}
+
+BOOL gl_framebuffer()
+{
+	// Framebuffers
+	glGenFramebuffers(1, &g_framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, g_framebuffer);
+	// Create a multisampled color attachment texture
+	GLuint textureColorBufferMultiSampled = generateMultiSampleTexture(4);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled, 0);
+	// Create a renderbuffer object for depth and stencil attachments
+	GLuint rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4,
+		GL_DEPTH24_STENCIL8, g_maxX, g_maxY);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		//cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+		return FALSE;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	return TRUE;
+}
 
 
 #ifdef IS_SHADING
