@@ -91,20 +91,20 @@ v1.0  2016-02-15  Initial release
 typedef struct { float x, y, z; } vec3_t;
 static inline vec3_t vec3(float x, float y, float z) { return (vec3_t) { x, y, z }; }
 
-static inline vec3_t v3_add(vec3_t a, vec3_t b) { return (vec3_t) { a.x + b.x, a.y + b.y, a.z + b.z }; }
-static inline vec3_t v3_adds(vec3_t a, float s) { return (vec3_t) { a.x + s, a.y + s, a.z + s }; }
-static inline vec3_t v3_sub(vec3_t a, vec3_t b) { return (vec3_t) { a.x - b.x, a.y - b.y, a.z - b.z }; }
-static inline vec3_t v3_subs(vec3_t a, float s) { return (vec3_t) { a.x - s, a.y - s, a.z - s }; }
-static inline vec3_t v3_mul(vec3_t a, vec3_t b) { return (vec3_t) { a.x * b.x, a.y * b.y, a.z * b.z }; }
-static inline vec3_t v3_muls(vec3_t a, float s) { return (vec3_t) { a.x * s, a.y * s, a.z * s }; }
-static inline vec3_t v3_div(vec3_t a, vec3_t b) { return (vec3_t) { a.x / b.x, a.y / b.y, a.z / b.z }; }
-static inline vec3_t v3_divs(vec3_t a, float s) { return (vec3_t) { a.x / s, a.y / s, a.z / s }; }
-static inline float  v3_length(vec3_t v) { return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z); }
-static inline vec3_t v3_norm(vec3_t v);
-static inline float  v3_dot(vec3_t a, vec3_t b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
-static inline vec3_t v3_proj(vec3_t v, vec3_t onto);
-static inline vec3_t v3_cross(vec3_t a, vec3_t b);
-static inline float  v3_angle_between(vec3_t a, vec3_t b);
+static vec3_t v3_add(vec3_t a, vec3_t b) { return (vec3_t) { a.x + b.x, a.y + b.y, a.z + b.z }; }
+static vec3_t v3_adds(vec3_t a, float s) { return (vec3_t) { a.x + s, a.y + s, a.z + s }; }
+static vec3_t v3_sub(vec3_t a, vec3_t b) { return (vec3_t) { a.x - b.x, a.y - b.y, a.z - b.z }; }
+static vec3_t v3_subs(vec3_t a, float s) { return (vec3_t) { a.x - s, a.y - s, a.z - s }; }
+static vec3_t v3_mul(vec3_t a, vec3_t b) { return (vec3_t) { a.x * b.x, a.y * b.y, a.z * b.z }; }
+static vec3_t v3_muls(vec3_t a, float s) { return (vec3_t) { a.x * s, a.y * s, a.z * s }; }
+static vec3_t v3_div(vec3_t a, vec3_t b) { return (vec3_t) { a.x / b.x, a.y / b.y, a.z / b.z }; }
+static vec3_t v3_divs(vec3_t a, float s) { return (vec3_t) { a.x / s, a.y / s, a.z / s }; }
+static float  v3_length(vec3_t v) { return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z); }
+static vec3_t v3_norm(vec3_t v);
+static float  v3_dot(vec3_t a, vec3_t b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+static vec3_t v3_proj(vec3_t v, vec3_t onto);
+static vec3_t v3_cross(vec3_t a, vec3_t b);
+static float  v3_angle_between(vec3_t a, vec3_t b);
 
 
 //
@@ -159,7 +159,7 @@ typedef union {
 	};
 } mat4_t;
 
-static inline mat4_t mat4(
+static mat4_t mat4(
 	float m00, float m10, float m20, float m30,
 	float m01, float m11, float m21, float m31,
 	float m02, float m12, float m22, float m32,
@@ -195,7 +195,7 @@ vec3_t m4_mul_dir(mat4_t matrix, vec3_t direction);
 // 3D vector functions header implementation
 //
 
-static inline vec3_t v3_norm(vec3_t v) {
+static vec3_t v3_norm(vec3_t v) {
 	float len = v3_length(v);
 	if (len > 0)
 		return (vec3_t) { v.x / len, v.y / len, v.z / len };
@@ -203,11 +203,11 @@ static inline vec3_t v3_norm(vec3_t v) {
 		return (vec3_t) { 0, 0, 0 };
 }
 
-static inline vec3_t v3_proj(vec3_t v, vec3_t onto) {
+static vec3_t v3_proj(vec3_t v, vec3_t onto) {
 	return v3_muls(onto, v3_dot(v, onto) / v3_dot(onto, onto));
 }
 
-static inline vec3_t v3_cross(vec3_t a, vec3_t b) {
+static vec3_t v3_cross(vec3_t a, vec3_t b) {
 	return (vec3_t) {
 		a.y * b.z - a.z * b.y,
 			a.z * b.x - a.x * b.z,
@@ -215,7 +215,7 @@ static inline vec3_t v3_cross(vec3_t a, vec3_t b) {
 	};
 }
 
-static inline float v3_angle_between(vec3_t a, vec3_t b) {
+static float v3_angle_between(vec3_t a, vec3_t b) {
 	return acosf(v3_dot(a, b) / (v3_length(a) * v3_length(b)));
 }
 
@@ -224,7 +224,7 @@ static inline float v3_angle_between(vec3_t a, vec3_t b) {
 // Matrix functions header implementation
 //
 
-static inline mat4_t mat4(
+static mat4_t mat4(
 	float m00, float m10, float m20, float m30,
 	float m01, float m11, float m21, float m31,
 	float m02, float m12, float m22, float m32,

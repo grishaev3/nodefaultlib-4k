@@ -5,6 +5,7 @@
 
 GLuint vertexbuffer;
 GLuint indexbuffer;
+GLuint normalbuffer;
 
 // https://www.khronos.org/opengl/wiki/VBO_-_just_examples
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-9-vbo-indexing/
@@ -37,6 +38,32 @@ GLuint g_index_buffer_data[] =
 	2, 7, 6,
 };
 
+// TODO: dynamic
+vec3_t n_normal_buffer_data[36];
+
+void l_calculate_normals()
+{
+	for (uint32_t i = 0; i < 12; i++) {
+		uint32_t index0 = g_index_buffer_data[i * 3 + 0];
+		uint32_t index1 = g_index_buffer_data[i * 3 + 1];
+		uint32_t index2 = g_index_buffer_data[i * 3 + 2];
+
+		vec3_t *a = (vec3_t*) { g_vertex_buffer_data[index0] };
+		vec3_t *b = (vec3_t*) { g_vertex_buffer_data[index1] };
+		vec3_t *c = (vec3_t*) { g_vertex_buffer_data[index2] };
+
+		vec3_t dir = v3_cross(v3_sub(*b, *a), v3_sub(*c, *a));
+
+		n_normal_buffer_data[index0] = 
+		n_normal_buffer_data[index1] = 
+		n_normal_buffer_data[index2] = v3_norm(dir);
+
+		/*vec3_t dir = Vector3.Cross(b - a, c - a);
+		vec3_t norm = Vector3.Normalize(dir);*/
+	}
+
+}
+
 void l_create_vertex_array()
 {
 	glGenBuffers(1, &vertexbuffer);
@@ -49,6 +76,10 @@ void l_create_vertex_array()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_index_buffer_data),
 		g_index_buffer_data, GL_STATIC_DRAW);
 
+	glGenBuffers(1, &normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(n_normal_buffer_data), 
+		n_normal_buffer_data, GL_STATIC_DRAW);
 }
 
 void l_draw_plane()
@@ -57,9 +88,14 @@ void l_draw_plane()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, sizeof(float) * 3, (void*)0);
 
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glNormalPointer(GL_FLOAT, sizeof(float) * 3, (void*)0);
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }

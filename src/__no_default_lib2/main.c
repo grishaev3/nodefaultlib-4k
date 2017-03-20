@@ -3,7 +3,7 @@
 #pragma comment(linker, "/SECTION:.text,EWR")
 
 #define IS_MOVE
-#define IS_SHADING
+//#define IS_SHADING
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
@@ -68,15 +68,18 @@ bool on_init()
 	g_from = vec3(0.0, 0.0, 1.0f);
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
-	if (!init_gl_ext()) return false;
-
-	l_create_vertex_array();
+	if (!init_gl_ext()) 
+		return false;
 
 	gl_framebuffer();
 
 #ifdef IS_SHADING
-	if (!load_shaders()) return false;
+	l_calculate_normals();
+	if (!load_shaders()) 
+		return false;
 #endif // IS_SHADING
+
+	l_create_vertex_array();
 
 	//g_geometry_info.numberOfBlock = 3;	// кол-во блоков в окружности
 	//g_geometry_info.windingCount = 1;		// кол-во слоёв (мотков)
@@ -108,7 +111,7 @@ bool on_init()
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
-	glColor3f(1.0f, 1.0f, 1.0f);
+	//glColor3f(1.0f, 1.0f, 1.0f);
 	//glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -2,5 +2,5 @@ varying vec4 diffuse;
 
 void main()
 {
-    gl_FragColor = (gl_LightSource[0].ambient + diffuse); 
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); 
 }
