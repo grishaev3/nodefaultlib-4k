@@ -2,6 +2,9 @@
 #pragma comment(linker, "/MERGE:.rdata=.text")
 #pragma comment(linker, "/SECTION:.text,EWR")
 
+#define IS_MOVE
+#define IS_SHADING
+
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
 
@@ -31,8 +34,6 @@ extern "C" {
 }
 #endif  /* __cplusplus */
 
-#define IS_MOVE
-//#define IS_SHADING
 
 extern GLuint g_framebuffer;
 extern GLenum g_ShadingProgram;
@@ -97,7 +98,12 @@ bool on_init()
 		generate_ring_winding((float)i, g_radius, g_radiusCoeff, pRing);
 	}
 
+#ifdef IS_SHADING
+	glPolygonMode(GL_FRONT, GL_FILL);
+#else
 	glPolygonMode(GL_FRONT, GL_LINE);
+#endif// IS_SHADING
+	
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
@@ -109,6 +115,8 @@ bool on_init()
 
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
+
+	return true;
 }
 
 void on_resize(int maxX, int maxY)
@@ -116,7 +124,8 @@ void on_resize(int maxX, int maxY)
 	g_maxX = maxX;
 	g_maxY = maxY;
 	glViewport(0, 0, maxX, maxY);
-	g_projection = m4_perspective(90.0f, (float)maxX / maxY, 0.2f, 100.0f);
+	g_projection = m4_perspective(90.0f, (float)maxX 
+		/ maxY, 0.2f, 100.0f);
 
 	/* FrameBuffer gen */
 	if (g_isExtensionInit) gl_framebuffer();
@@ -137,9 +146,7 @@ void on_render()
 	g_view = m4_look_at(g_from, g_to, g_up);
 	g_prj_view = m4_mul(g_projection, g_view);
 
-	// move camera
-#ifdef IS_MOVE
-
+#ifdef IS_MOVE	// move camera
 	float deltaCameraZ = 0.01f;
 	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
@@ -153,7 +160,6 @@ void on_render()
 			generate_ring_winding((float)g_segCount, g_radius, g_radiusCoeff, pRing);
 		}
 	}
-
 #endif // IS_MOVE
 
 	// 1. Draw scene as normal in multisampled buffers
@@ -168,7 +174,7 @@ void on_render()
 
 	/* main draw */
 #ifdef IS_SHADING
-	glUseProgramObjectARB(g_ShadingProgram);
+	glUseProgram(g_ShadingProgram);
 #endif // IS_SHADING
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i]);
@@ -189,6 +195,7 @@ void on_render()
 	//glutSwapBuffers();
 	//g_deltaTime = (float)(glutGet(GLUT_ELAPSED_TIME) - startFrame) / 1000.0f;
 	g_deltaTime = (float)(16 - startFrame) / 1000.0f;
+
 	SwapBuffers(g_hDC);
 }
 
@@ -257,7 +264,7 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	int32_t next_game_tick = GetTickCount();
 	const uint32_t SKIP_TICKS = (1000 / g_frames_per_second);
 
-	while (TRUE) {
+	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);

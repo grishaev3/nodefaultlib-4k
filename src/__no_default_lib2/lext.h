@@ -15,16 +15,16 @@
 
 void *glf[NUMFUNCIONES];
 
-#define oglCreateProgram					((PFNGLCREATEPROGRAMPROC)glf[0])
-#define oglCreateShader						((PFNGLCREATESHADERPROC)glf[1])
-#define oglShaderSource						((PFNGLSHADERSOURCEPROC)glf[2])
-#define oglCompileShader					((PFNGLCOMPILESHADERPROC)glf[3])
-#define oglAttachShader						((PFNGLATTACHSHADERPROC)glf[4])
-#define oglLinkProgram						((PFNGLLINKPROGRAMPROC)glf[5])
-#define oglUseProgram						((PFNGLUSEPROGRAMPROC)glf[6])
-#define oglUniform4fv						((PFNGLUNIFORM4FVPROC)glf[7])
-#define oglUniform1i						((PFNGLUNIFORM1IPROC)glf[8])
-#define oglGetUniformLocation				((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
+#define glCreateProgram						((PFNGLCREATEPROGRAMPROC)glf[0])
+#define glCreateShader						((PFNGLCREATESHADERPROC)glf[1])
+#define glShaderSource						((PFNGLSHADERSOURCEPROC)glf[2])
+#define glCompileShader						((PFNGLCOMPILESHADERPROC)glf[3])
+#define glAttachShader						((PFNGLATTACHSHADERPROC)glf[4])
+#define glLinkProgram						((PFNGLLINKPROGRAMPROC)glf[5])
+#define glUseProgram						((PFNGLUSEPROGRAMPROC)glf[6])
+#define glUniform4fv						((PFNGLUNIFORM4FVPROC)glf[7])
+#define glUniform1i							((PFNGLUNIFORM1IPROC)glf[8])
+#define glGetUniformLocation				((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
 
 #define glGenBuffers						((PFNGLGENBUFFERSPROC)glf[10])
 #define glBindBuffer						((PFNGLBINDBUFFERPROC)glf[11])
@@ -265,34 +265,34 @@ bool load_shaders()
 #endif
 
 	// Create Shader And Program Objects
-	g_ShadingProgram = glCreateProgramObjectARB();
-	my_vertex_shader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-	my_fragment_shader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+	g_ShadingProgram = glCreateProgram();
+	my_vertex_shader = glCreateShader(GL_VERTEX_SHADER_ARB);
+	my_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
 
 	// Load Shader Sources
-	glShaderSourceARB(my_vertex_shader, 1, &my_vertex_shader_source, NULL);
-	glShaderSourceARB(my_fragment_shader, 1, &my_fragment_shader_source, NULL);
+	glShaderSource(my_vertex_shader, 1, &my_vertex_shader_source, NULL);
+	glShaderSource(my_fragment_shader, 1, &my_fragment_shader_source, NULL);
 
 	// Compile The Shaders
 
-	glCompileShaderARB(my_vertex_shader);
+	glCompileShader(my_vertex_shader);
 #ifdef _DEBUG
 	if (!check_shader(my_vertex_shader))
-		return 0;
+		return false;
 #endif
 
-	glCompileShaderARB(my_fragment_shader);
+	glCompileShader(my_fragment_shader);
 #ifdef _DEBUG
 	if (!check_shader(my_fragment_shader))
-		return 0;
+		return false;
 #endif
 
 	// Attach The Shader Objects To The Program Object
-	glAttachObjectARB(g_ShadingProgram, my_vertex_shader);
-	glAttachObjectARB(g_ShadingProgram, my_fragment_shader);
+	glAttachShader(g_ShadingProgram, my_vertex_shader);
+	glAttachShader(g_ShadingProgram, my_fragment_shader);
 
 	// Link The Program Object
-	glLinkProgramARB(g_ShadingProgram);
+	glLinkProgram(g_ShadingProgram);
 
 	return true;
 }

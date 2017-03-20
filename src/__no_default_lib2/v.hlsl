@@ -1,4 +1,5 @@
 varying vec4 diffuse;
+
 void main()
 {
     gl_Position  =  ftransform();
