@@ -9,7 +9,7 @@ typedef struct {
 	//blockCount = 3;	// кол-во блоков в окружности
 	//windingCount = 1;		// кол-во слоёв (мотков) с увеличивающимся радиусом
 	//segCount=windingCount*blockCount
-	size_t blockCount, windingCount, posLength;
+	uint32_t blockCount, windingCount, posLength;
 	mat4_t *pos;
 } geometry_ring;
 
@@ -35,7 +35,7 @@ void generate_ring(float z, float radius, float jit,
 	float angle = 0.0f + jit;
 	float step = 360.0f / pRing->blockCount;
 	
-	for (int i = 0; i < pRing->blockCount; i++) {
+	for (uint32_t i = 0; i < pRing->blockCount; i++) {
 		const float angle_in_rad = angle*Deg2Rad;
 		lsincosf(angle_in_rad, &s, &c);
 		vec3_t offset = (vec3_t) { c * radius, s * radius, z };
@@ -53,7 +53,7 @@ void generate_ring(float z, float radius, float jit,
 void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ring *pRing)
 {
 	float currentRadius = radius;
-	for (int windingIndex = 0; windingIndex < pRing->windingCount; windingIndex++) {
+	for (uint32_t windingIndex = 0; windingIndex < pRing->windingCount; windingIndex++) {
 		float jit = lrandf(-10.0f*windingIndex, 10.0f*windingIndex);
 		generate_ring(-z, currentRadius, jit, windingIndex, pRing);
 		currentRadius += radius*raduisCoeff;
@@ -63,14 +63,14 @@ void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ri
 float move_ring(float deltaZ, geometry_ring *pRing)
 {
 	//ring->pos[i] = m4_mul(m4_translation((vec3_t) { 0.0f, 0.0f, deltaZ }), ring->pos[i]);
-	for (int i = 0; i < pRing->posLength; i++)
+	for (uint32_t i = 0; i < pRing->posLength; i++)
 		pRing->pos[i].m32 += deltaZ;
 	return pRing->pos[0].m32;
 }
 
 void draw_ring(const geometry_ring *ring)
 {
-	for (int i = 0; i < ring->posLength; i++) {
+	for (uint32_t i = 0; i < ring->posLength; i++) {
 		glPushMatrix();
 		glMultMatrixf(&ring->pos[i]);
 		l_draw_plane();

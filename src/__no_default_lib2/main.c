@@ -44,7 +44,9 @@ HGLRC g_hRC = NULL;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-int g_frames_per_second = 60;
+uint32_t g_frames_per_second = 60;
+uint32_t g_maxX = 1024 / 3, g_maxY = 640 / 3;
+
 const float g_speed = 1;
 float g_deltaTime;
 float g_cameraAngle;
@@ -54,28 +56,25 @@ mat4_t g_view, g_projection, g_prj_view;
 
 float g_radius = 2.0f;
 float g_radiusCoeff = 0.1f;
-size_t g_segCount = 5;
-size_t g_maxBlockCount = 16;
-size_t g_maxWindingCount = 5;
+uint32_t g_segCount = 5;
+uint32_t g_maxBlockCount = 16;
+uint32_t g_maxWindingCount = 5;
 geometry_ring *g_rings;
 
-
-uint32_t g_maxX = 1024, g_maxY = 640;
-
-BOOL on_init()
+bool on_init()
 {
 	lsrand(GetTickCount());
 	g_from = vec3(0.0, 0.0, 1.0f);
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
-	if (!init_gl_ext()) return FALSE;
+	if (!init_gl_ext()) return false;
 
 	l_create_vertex_array();
 
 	gl_framebuffer();
 
 #ifdef IS_SHADING
-	if (!load_shaders()) return;
+	if (!load_shaders()) return false;
 #endif // IS_SHADING
 
 	//g_geometry_info.numberOfBlock = 3;	// кол-во блоков в окружности
@@ -86,10 +85,11 @@ BOOL on_init()
 	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
 	size_t geomSizeInBytes = (g_maxBlockCount * g_maxWindingCount * sizeof(mat4_t)) * g_segCount;
 
+	/* TODO: dynamic array https://habrahabr.ru/post/324210/ */
 	l_heap_create(geomSizeInBytes, geomSizeInBytes * 2);
 	g_rings = (geometry_ring*)l_malloc(g_ringsSizeInBytes);
 
-	for (int i = 0; i < g_segCount; i++) {
+	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
 		pRing->blockCount = g_maxBlockCount;
 		pRing->windingCount = g_maxWindingCount;
@@ -141,7 +141,7 @@ void on_render()
 #ifdef IS_MOVE
 
 	float deltaCameraZ = 0.01f;
-	for (int i = 0; i < g_segCount; i++) {
+	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
 		if (move_ring(deltaCameraZ, pRing) > 1.0f) {
 
@@ -170,7 +170,7 @@ void on_render()
 #ifdef IS_SHADING
 	glUseProgramObjectARB(g_ShadingProgram);
 #endif // IS_SHADING
-	for (int i = 0; i < g_segCount; i++)
+	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i]);
 
 

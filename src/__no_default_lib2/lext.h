@@ -1,15 +1,16 @@
 #pragma once
 
 #include <windows.h>
-#include <Shlwapi.h>
 #include <GL/gl.h>
 #include <gl/glext.h>
 #include <gl/wglext.h>
 
+#include <stdbool.h>
+
 #ifdef _DEBUG
-#define NUMFUNCIONES 28
+#define NUMFUNCIONES 27
 #else
-#define NUMFUNCIONES 24
+#define NUMFUNCIONES 23
 #endif
 
 void *glf[NUMFUNCIONES];
@@ -25,9 +26,9 @@ void *glf[NUMFUNCIONES];
 #define oglUniform1i						((PFNGLUNIFORM1IPROC)glf[8])
 #define oglGetUniformLocation				((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
 
-#define glGenBuffers						((PFNGLGETUNIFORMLOCATIONARBPROC)glf[10])
-#define glBindBuffer						((PFNGLGETUNIFORMLOCATIONARBPROC)glf[11])
-#define glBufferData						((PFNGLGETUNIFORMLOCATIONARBPROC)glf[12])
+#define glGenBuffers						((PFNGLGENBUFFERSPROC)glf[10])
+#define glBindBuffer						((PFNGLBINDBUFFERPROC)glf[11])
+#define glBufferData						((PFNGLBUFFERDATAPROC)glf[12])
 
 #define glGenFramebuffers					((PFNGLGENFRAMEBUFFERSPROC)glf[13])
 #define glBindFramebuffer					((PFNGLBINDFRAMEBUFFERPROC)glf[14])
@@ -38,15 +39,14 @@ void *glf[NUMFUNCIONES];
 
 #define glGenRenderbuffers					((PFNGLGENRENDERBUFFERSPROC)glf[19])
 #define glBindRenderbuffer					((PFNGLBINDRENDERBUFFERPROC)glf[20])
-#define glBindRenderbuffer					((PFNGLBINDRENDERBUFFERPROC)glf[21])
-#define glBlitFramebuffer					((PFNGLBLITFRAMEBUFFERPROC)glf[22])
-#define glTexImage2DMultisample					((PFNGLTEXIMAGE2DMULTISAMPLEPROC)glf[23])
+#define glBlitFramebuffer					((PFNGLBLITFRAMEBUFFERPROC)glf[21])
+#define glTexImage2DMultisample				((PFNGLTEXIMAGE2DMULTISAMPLEPROC)glf[22])
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[24])
-#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[25])
-#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[26])
-#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[27])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[23])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[24])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[25])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[26])
 #endif
 
 
@@ -74,7 +74,6 @@ static char *strs[] = {
 	"glCheckFramebufferStatus",
 	"glGenRenderbuffers",
 	"glBindRenderbuffer",
-	"glBindRenderbuffer",
 	"glBlitFramebuffer",
 	"glTexImage2DMultisample",
 
@@ -97,23 +96,23 @@ GLuint g_framebuffer;
 GLboolean g_isExtensionInit = 0;
 
 #ifdef _DEBUG
-BOOL gl_is_extension_supported(const char * extension)
+bool gl_is_extension_supported(const char * extension)
 {
 	size_t extlen = strlen(extension);
 	const char *supported = (const char *)glGetString(GL_EXTENSIONS);
 	while (supported) {
 		if (!strncmp(supported, extension, extlen) &&
 			(*(supported + extlen) == 0 || *(supported + extlen) == ' '))
-			return TRUE;
+			return true;
 		supported = strchr(supported, ' ');
 		if (supported)
 			supported++;
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL wgl_is_extension_supported(const char *extension)
+bool wgl_is_extension_supported(const char *extension)
 {
 	const size_t extlen = strlen(extension);
 	const char *supported = NULL;
@@ -127,23 +126,23 @@ BOOL wgl_is_extension_supported(const char *extension)
 
 
 	if (supported == NULL)
-		return FALSE;
-	return TRUE;
+		return false;
+	return true;
 }
 
 int get_pixel_format(HDC hDC)
 {
 	if (!wgl_is_extension_supported("GL_ARB_multisample")) {
-		return FALSE;
+		return false;
 	}
 
 	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB =
 		(PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 
-	if (!wglChoosePixelFormatARB) return FALSE;
+	if (!wglChoosePixelFormatARB) return false;
 
 	int pixelFormat;
-	BOOL valid;
+	bool valid;
 	UINT numFormats;
 	float fAttributes[] = { 0,0 };
 
@@ -152,7 +151,7 @@ int get_pixel_format(HDC hDC)
 	// Really Focus On Is The SAMPLE BUFFERS ARB And WGL SAMPLES
 	// These Two Are Going To Do The Main Testing For Whether Or Not
 	// We Support Multisampling On This Hardware
-	int iAttributes[] = { WGL_DRAW_TO_WINDOW_ARB,GL_TRUE,
+	int iAttributes[] = { WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 		WGL_SUPPORT_OPENGL_ARB,GL_TRUE,
 		WGL_ACCELERATION_ARB,WGL_FULL_ACCELERATION_ARB,
 		WGL_COLOR_BITS_ARB,24,
@@ -201,14 +200,14 @@ int check_shader(GLuint shader)
 }
 #endif
 
-BOOL init_gl_ext()
+bool init_gl_ext()
 {
 	for (int i = 0; i < NUMFUNCIONES; i++) {
 		glf[i] = wglGetProcAddress(strs[i]);
 		if (!glf[i])
-			return FALSE;
+			return false;
 	}
-	return g_isExtensionInit = TRUE;
+	return g_isExtensionInit = true;
 }
 
 
@@ -226,7 +225,7 @@ GLuint generateMultiSampleTexture(GLuint samples)
 	return texture;
 }
 
-BOOL gl_framebuffer()
+bool gl_framebuffer()
 {
 	// Framebuffers
 	glGenFramebuffers(1, &g_framebuffer);
@@ -245,14 +244,14 @@ BOOL gl_framebuffer()
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		//cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-		return FALSE;
+		return false;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	return TRUE;
+	return true;
 }
 
 
 #ifdef IS_SHADING
-BOOL load_shaders()
+bool load_shaders()
 {
 	GLenum my_vertex_shader;
 	GLenum my_fragment_shader;
@@ -295,6 +294,6 @@ BOOL load_shaders()
 	// Link The Program Object
 	glLinkProgramARB(g_ShadingProgram);
 
-	return TRUE;
+	return true;
 }
 #endif
