@@ -2,7 +2,7 @@
 #pragma comment(linker, "/MERGE:.rdata=.text")
 #pragma comment(linker, "/SECTION:.text,EWR")
 
-//#define IS_MOVE
+#define IS_MOVE
 #define IS_SHADING
 
 #define WIN32_LEAN_AND_MEAN
@@ -19,6 +19,7 @@
 #include <windows.h>
 #include <gl/GL.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MATH_3D_IMPLEMENTATION
 #include "math_3d.h"
@@ -53,11 +54,11 @@ float g_deltaTime;
 float g_cameraAngle;
 
 vec3_t g_from, g_to, g_up;
-mat4_t g_view, g_projection, g_prj_view;
+mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
 float g_radius = 2.0f;
 float g_radiusCoeff = 0.1f;
-uint32_t g_segCount = 5;
+uint32_t g_segCount = 7;
 uint32_t g_maxBlockCount = 16;
 uint32_t g_maxWindingCount = 5;
 geometry_ring *g_rings;
@@ -68,14 +69,14 @@ bool on_init()
 	g_from = vec3(0.0, 0.0, 1.0f);
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
-	if (!init_gl_ext()) 
+	if (!init_gl_ext())
 		return false;
 
 	gl_framebuffer();
 
 #ifdef IS_SHADING
 	l_calculate_normals();
-	if (!load_shaders()) 
+	if (!load_shaders())
 		return false;
 #endif // IS_SHADING
 
@@ -106,15 +107,10 @@ bool on_init()
 #else
 	glPolygonMode(GL_FRONT, GL_LINE);
 #endif// IS_SHADING
-	
+
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
-
-	//glColor3f(1.0f, 1.0f, 1.0f);
-	//glColor4f(0.0f, 1.0f, 0.0f, 0.35f);
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
@@ -127,8 +123,8 @@ void on_resize(int maxX, int maxY)
 	g_maxX = maxX;
 	g_maxY = maxY;
 	glViewport(0, 0, maxX, maxY);
-	g_projection = m4_perspective(90.0f, (float)maxX 
-		/ maxY, 0.2f, 100.0f);
+	g_projection = m4_perspective(90.0f, (float)maxX
+		/ maxY, 0.2f, 20.0f);
 
 	/* FrameBuffer gen */
 	if (g_isExtensionInit) gl_framebuffer();
@@ -145,7 +141,7 @@ void on_render()
 	lsincosf(g_cameraAngle * Deg2Rad, &s, &c);
 	g_to.x = c*radius;	g_to.y = s*radius;
 	g_view = m4_look_at(g_from, g_to, g_up);
-	g_prj_view = m4_mul(g_projection, g_view);
+
 
 #ifdef IS_MOVE	// move camera
 	float deltaCameraZ = 0.01f;
@@ -177,9 +173,10 @@ void on_render()
 #ifdef IS_SHADING
 
 	glUseProgram(g_ShadingProgram);
-	vec3_t in_Color = (vec3_t) { 0.0f, 1.0f, 0.25f };
-	lUniform4fv("in_Color", &in_Color.x);
-	lUniformMatrix4fv("in_prj_view", &g_prj_view.m);
+	lUniformMatrix4fv("u_view", &g_view.m);
+	lUniformMatrix4fv("u_proj", &g_projection.m);
+	float lightPos[4] = { 0, 1, -1, 0 };
+	lUniform4fv("u_LightPos", lightPos);
 
 #endif // IS_SHADING
 	for (uint32_t i = 0; i < g_segCount; i++)

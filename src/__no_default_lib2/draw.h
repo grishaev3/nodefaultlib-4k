@@ -53,8 +53,6 @@ vec3_t n_normal_buffer_data[24];
 
 void l_calculate_normals()
 {
-	uint16_t size = sizeof(n_normal_buffer_data);
-
 	for (uint32_t i = 0; i < 12; i++) {
 		uint32_t index0 = g_index_buffer_data[i * 3 + 0];
 		uint32_t index1 = g_index_buffer_data[i * 3 + 1];

@@ -1,31 +1,26 @@
 #version 330 core
 
-uniform vec4 in_Color;
+uniform vec3 u_LightPos;       // The position of the light in eye space.
 
-uniform mat4 in_prj_view;
-uniform mat4 in_world;
-
-in vec3 frag_vertex;
-in vec3 frag_normal;
-
-out vec4 final_color;
+varying vec3 v_Position;       // Interpolated position for this fragment.
+							   // triangle per fragment.
+varying vec3 v_Normal;         // Interpolated normal for this fragment.
 
 void main()
 {
-    //calculate normal in world coordinates
-    mat3 normalMatrix = transpose(inverse(mat3(in_world)));
-    vec3 normal = normalize(normalMatrix * frag_normal);
-    
-    //calculate the location of this fragment (pixel) in world coordinates
-    vec3 fragPosition = vec3(in_world * vec4(frag_vertex, 1));
-    
-    //calculate the vector from this pixels surface to the light source
-    vec3 surfaceToLight = vec3(0.0) - fragPosition;
-    
-    //calculate the cosine of the angle of incidence
-    float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));
-    brightness = clamp(brightness, 0.2, 1);
+	// Will be used for attenuation.
+	float distance = length(u_LightPos - v_Position);
 
-	final_color = vec4(brightness);
-	//final_color = vec4(1);
+	// Get a lighting direction vector from the light to the vertex.
+	vec3 lightVector = normalize(u_LightPos - v_Position);
+
+	// Calculate the dot product of the light vector and vertex normal. If the normal and light vector are
+	// pointing in the same direction then it will get max illumination.
+	float diffuse = max(dot(v_Normal, lightVector), 0.4);
+
+	// Add attenuation.
+	diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));
+
+	// Multiply the color by the diffuse illumination level to get final output color.
+	gl_FragColor = vec4(0.0, 1.0, 0.25, 1.0) * diffuse;
 }

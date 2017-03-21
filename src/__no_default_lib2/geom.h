@@ -30,7 +30,7 @@ void generate_ring(float z, float radius, float jit,
 	float s, c;
 	int elementIndex = pRing->blockCount*windingIndex;
 
-	const vec3_t scale = (vec3_t) { 0.65f, 0.05f, 1.0f };
+	const vec3_t scale = (vec3_t) { 0.65f, 0.125f, 1.0f };
 
 	float angle = 0.0f + jit;
 	float step = 360.0f / pRing->blockCount;
@@ -74,7 +74,7 @@ void draw_ring(const geometry_ring *ring)
 		//glPushMatrix();
 		//glMultMatrixf(&ring->pos[i]);
 
-		lUniformMatrix4fv("in_world", &ring->pos[i]);
+		lUniformMatrix4fv("u_world", &ring->pos[i]);
 		l_draw_plane();
 		//glPopMatrix();
 	}
