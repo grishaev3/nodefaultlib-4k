@@ -71,9 +71,11 @@ float move_ring(float deltaZ, geometry_ring *pRing)
 void draw_ring(const geometry_ring *ring)
 {
 	for (uint32_t i = 0; i < ring->posLength; i++) {
-		glPushMatrix();
-		glMultMatrixf(&ring->pos[i]);
+		//glPushMatrix();
+		//glMultMatrixf(&ring->pos[i]);
+
+		lUniformMatrix4fv("in_world", &ring->pos[i]);
 		l_draw_plane();
-		glPopMatrix();
+		//glPopMatrix();
 	}
 }

@@ -23,7 +23,7 @@ void *glf[NUMFUNCIONES];
 #define glLinkProgram						((PFNGLLINKPROGRAMPROC)glf[5])
 #define glUseProgram						((PFNGLUSEPROGRAMPROC)glf[6])
 #define glUniform4fv						((PFNGLUNIFORM4FVPROC)glf[7])
-#define glUniform1i							((PFNGLUNIFORM1IPROC)glf[8])
+#define glUniformMatrix4fv					((PFNGLUNIFORMMATRIX4FVPROC)glf[8])
 #define glGetUniformLocation				((PFNGLGETUNIFORMLOCATIONARBPROC)glf[9])
 
 #define glGenBuffers						((PFNGLGENBUFFERSPROC)glf[10])
@@ -59,7 +59,7 @@ static char *strs[] = {
 	"glLinkProgram",
 	"glUseProgram",
 	"glUniform4fv",
-	"glUniform1i",
+	"glUniformMatrix4fv",
 	"glGetUniformLocation",
 
 	"glGenBuffers",
@@ -183,7 +183,7 @@ int get_pixel_format(HDC hDC)
 	return  0;
 }
 
-int check_shader(GLuint shader)
+bool check_shader(GLuint shader, char * errorLog)
 {
 	GLint success = 0;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -191,10 +191,8 @@ int check_shader(GLuint shader)
 	if (!success) {
 		GLint logSize = 0;
 		int maxLength = MAX_PATH;
-		char *errorLog = (char*)LocalAlloc(LPTR, maxLength);
 		glGetShaderiv(shader, maxLength, &logSize);
-		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-		LocalFree(errorLog);
+		glGetShaderInfoLog(shader, maxLength, &maxLength, errorLog);
 	}
 	return success;
 }
@@ -251,8 +249,23 @@ bool gl_framebuffer()
 
 
 #ifdef IS_SHADING
+
+void lUniform4fv(const char *param, GLfloat *x)
+{
+	GLint loc = glGetUniformLocation(g_ShadingProgram, param);
+	glUniform4fv(loc, 1, x);
+}
+void lUniformMatrix4fv(const char *param, GLfloat *x)
+{
+	GLint loc = glGetUniformLocation(g_ShadingProgram, param);
+	glUniformMatrix4fv(loc, 1, false, x);
+}
+
 bool load_shaders()
 {
+	char errorLog[MAX_PATH];
+	ZeroMemory(errorLog, MAX_PATH);
+
 	GLenum my_vertex_shader;
 	GLenum my_fragment_shader;
 	char *my_vertex_shader_source;
@@ -262,6 +275,12 @@ bool load_shaders()
 	// Get Vertex And Fragment Shader Sources
 	my_vertex_shader_source = read_file("v.hlsl");
 	my_fragment_shader_source = read_file("f.hlsl");
+	if (!my_vertex_shader_source || !my_fragment_shader_source)
+		return false;
+#else
+	/* GLSL type checker and minifier http://evanw.github.io/glslx/ */
+	my_vertex_shader_source = "attribute vec4 at_vertex;uniform mat4 in_prj_view,in_world;void main(){gl_Position=in_prj_view*in_world*at_vertex;}";
+	my_fragment_shader_source = "uniform vec4 in_Color;void main(){gl_FragColor=in_Color;}";
 #endif
 
 	// Create Shader And Program Objects
@@ -277,13 +296,13 @@ bool load_shaders()
 
 	glCompileShader(my_vertex_shader);
 #ifdef _DEBUG
-	if (!check_shader(my_vertex_shader))
+	if (!check_shader(my_vertex_shader, errorLog))
 		return false;
 #endif
 
 	glCompileShader(my_fragment_shader);
 #ifdef _DEBUG
-	if (!check_shader(my_fragment_shader))
+	if (!check_shader(my_fragment_shader, errorLog))
 		return false;
 #endif
 

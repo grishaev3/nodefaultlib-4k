@@ -4,6 +4,11 @@
 
 HANDLE g_hHeap;
 
+void l_zero_mem(LPVOID pvMem, size_t dwBytes)
+{
+	ZeroMemory(pvMem, dwBytes);
+}
+
 void l_heap_create(size_t dwInitialSize, size_t dwHaximumSize)
 {
 	g_hHeap = HeapCreate(0, dwInitialSize, dwHaximumSize);

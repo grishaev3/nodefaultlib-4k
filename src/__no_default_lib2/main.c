@@ -2,8 +2,8 @@
 #pragma comment(linker, "/MERGE:.rdata=.text")
 #pragma comment(linker, "/SECTION:.text,EWR")
 
-#define IS_MOVE
-//#define IS_SHADING
+//#define IS_MOVE
+#define IS_SHADING
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
@@ -136,8 +136,6 @@ void on_resize(int maxX, int maxY)
 
 void on_render()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	//float startFrame = glutGet(GLUT_ELAPSED_TIME);
 	float startFrame = 0;
 
@@ -169,15 +167,20 @@ void on_render()
 	glBindFramebuffer(GL_FRAMEBUFFER, g_framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf((const GLfloat*)&g_prj_view.m);	// current
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	//glLoadMatrixf((const GLfloat*)&g_prj_view.m);	// current
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
 
 	/* main draw */
 #ifdef IS_SHADING
+
 	glUseProgram(g_ShadingProgram);
+	vec3_t in_Color = (vec3_t) { 0.0f, 1.0f, 0.25f };
+	lUniform4fv("in_Color", &in_Color.x);
+	lUniformMatrix4fv("in_prj_view", &g_prj_view.m);
+
 #endif // IS_SHADING
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i]);
