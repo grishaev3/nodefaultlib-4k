@@ -10,39 +10,51 @@ GLuint normalbuffer;
 // https://www.khronos.org/opengl/wiki/VBO_-_just_examples
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-9-vbo-indexing/
 
-float g_vertex_buffer_data[8][3] =
+float g_vertex_buffer_data[24][3] =
 {
-	{ -0.25f, 0.25f, -0.25f },
 	{ 0.25f, 0.25f, -0.25f },
-	{ -0.25f, -0.25f, -0.25f },
 	{ 0.25f, -0.25f, -0.25f },
-	{ -0.25f, 0.25f, 0.25f },
+	{ -0.25f, -0.25f, -0.25f },
+	{ -0.25f, 0.25f, -0.25f },
 	{ 0.25f, 0.25f, 0.25f },
+	{ -0.25f, 0.25f, 0.25f },
 	{ -0.25f, -0.25f, 0.25f },
-	{ 0.25f, -0.25f, 0.25f }
+	{ 0.25f, -0.25f, 0.25f },
+	{ 0.25f, 0.25f, -0.25f },
+	{ 0.25f, 0.25f, 0.25f },
+	{ 0.25f, -0.25f, 0.25f },
+	{ 0.25f, -0.25f, -0.25f },
+	{ 0.25f, -0.25f, -0.25f },
+	{ 0.25f, -0.25f, 0.25f },
+	{ -0.25f, -0.25f, 0.25f },
+	{ -0.25f, -0.25f, -0.25f },
+	{ -0.25f, -0.25f, -0.25f },
+	{ -0.25f, -0.25f, 0.25f },
+	{ -0.25f, 0.25f, 0.25f },
+	{ -0.25f, 0.25f, -0.25f },
+	{ 0.25f, 0.25f, 0.25f },
+	{ 0.25f, 0.25f, -0.25f },
+	{ -0.25f, 0.25f, -0.25f },
+	{ -0.25f, 0.25f, 0.25f },
 };
 
 GLuint g_index_buffer_data[] =
 {
-	0, 1, 2,    // side 1
-	2, 1, 3,
-	4, 0, 6,    // side 2
-	6, 0, 2,
-	7, 5, 6,    // side 3
-	6, 5, 4,
-	3, 1, 7,    // side 4
-	7, 1, 5,
-	4, 5, 0,    // side 5
-	0, 5, 1,
-	3, 7, 2,    // side 6
-	2, 7, 6,
+	0, 1, 2, 2, 3, 0,
+	4, 5, 6, 6, 7, 4,
+	8, 9, 10, 10, 11, 8,
+	12, 13, 14, 14, 15, 12,
+	16, 17, 18, 18, 19, 16,
+	20, 21, 22, 22, 23, 20
 };
 
 // TODO: dynamic
-vec3_t n_normal_buffer_data[36];
+vec3_t n_normal_buffer_data[24];
 
 void l_calculate_normals()
 {
+	uint16_t size = sizeof(n_normal_buffer_data);
+
 	for (uint32_t i = 0; i < 12; i++) {
 		uint32_t index0 = g_index_buffer_data[i * 3 + 0];
 		uint32_t index1 = g_index_buffer_data[i * 3 + 1];
@@ -54,14 +66,13 @@ void l_calculate_normals()
 
 		vec3_t dir = v3_cross(v3_sub(*b, *a), v3_sub(*c, *a));
 
-		n_normal_buffer_data[index0] = 
-		n_normal_buffer_data[index1] = 
-		n_normal_buffer_data[index2] = v3_norm(dir);
+		n_normal_buffer_data[index0] =
+			n_normal_buffer_data[index1] =
+			n_normal_buffer_data[index2] = v3_norm(dir);
 
 		/*vec3_t dir = Vector3.Cross(b - a, c - a);
 		vec3_t norm = Vector3.Normalize(dir);*/
 	}
-
 }
 
 void l_create_vertex_array()
@@ -78,7 +89,7 @@ void l_create_vertex_array()
 
 	glGenBuffers(1, &normalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(n_normal_buffer_data), 
+	glBufferData(GL_ARRAY_BUFFER, sizeof(n_normal_buffer_data),
 		n_normal_buffer_data, GL_STATIC_DRAW);
 }
 
