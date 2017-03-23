@@ -112,6 +112,10 @@
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -166,6 +170,10 @@
       </AdditionalLibraryDirectories>
       <EntryPointSymbol>WinMainCRTStartup</EntryPointSymbol>
     </Link>
+    <PreBuildEvent>
+      <Command>$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\v.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\vhlsl.h
+$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\f.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\fhlsl.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -191,6 +199,7 @@
     <ClInclude Include="args.h" />
     <ClInclude Include="bounding_box.h" />
     <ClInclude Include="draw.h" />
+    <ClInclude Include="fhlsl.h" />
     <ClInclude Include="geom.h" />
     <ClInclude Include="io.h" />
     <ClInclude Include="lmath.h" />
@@ -198,6 +207,7 @@
     <ClInclude Include="lext.h" />
     <ClInclude Include="math_3d.h" />
     <ClInclude Include="tests.h" />
+    <ClInclude Include="vhlsl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,9 +8,10 @@ uniform mat4 u_view;
 uniform mat4 u_proj;
 uniform vec3 u_LightPos;
 
-varying vec3 v_Position;       // This will be passed into the fragment shader.
-varying vec4 v_Color;          // This will be passed into the fragment shader.
-varying vec3 v_Normal;         // This will be passed into the fragment shader.
+// This will be passed into the fragment shader.
+varying vec3 v_Position;
+varying vec4 v_Color;
+varying vec3 v_Normal;
 
 
 void main()

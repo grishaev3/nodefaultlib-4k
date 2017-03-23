@@ -7,10 +7,13 @@
 
 #include <stdbool.h>
 
+#include "vhlsl.h"
+#include "fhlsl.h"
+
 #ifdef _DEBUG
-#define NUMFUNCIONES 27
+#define NUMFUNCIONES 28
 #else
-#define NUMFUNCIONES 23
+#define NUMFUNCIONES 24
 #endif
 
 void *glf[NUMFUNCIONES];
@@ -42,11 +45,13 @@ void *glf[NUMFUNCIONES];
 #define glBlitFramebuffer					((PFNGLBLITFRAMEBUFFERPROC)glf[21])
 #define glTexImage2DMultisample				((PFNGLTEXIMAGE2DMULTISAMPLEPROC)glf[22])
 
+#define glVertexAttribPointer				((PFNGLVERTEXATTRIBPOINTERPROC)glf[23])
+
 #ifdef _DEBUG
-#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[23])
-#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[24])
-#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[25])
-#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[26])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[24])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[25])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[26])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[27])
 #endif
 
 
@@ -76,6 +81,8 @@ static char *strs[] = {
 	"glBindRenderbuffer",
 	"glBlitFramebuffer",
 	"glTexImage2DMultisample",
+
+	"glVertexAttribPointer",
 
 	//--
 #ifdef _DEBUG
@@ -278,9 +285,9 @@ bool load_shaders()
 	if (!my_vertex_shader_source || !my_fragment_shader_source)
 		return false;
 #else
-	/* GLSL type checker and minifier http://evanw.github.io/glslx/ */
-	my_vertex_shader_source = "attribute vec4 at_vertex;uniform mat4 in_prj_view,in_world;void main(){gl_Position=in_prj_view*in_world*at_vertex;}";
-	my_fragment_shader_source = "uniform vec4 in_Color;void main(){gl_FragColor=in_Color;}";
+	/* GLSL type checker and minifier http://www.ctrl-alt-test.fr/?p=287 */
+	my_vertex_shader_source = v_hlsl;
+	my_fragment_shader_source = f_hlsl;
 #endif
 
 	// Create Shader And Program Objects

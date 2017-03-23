@@ -1,9 +1,7 @@
 #version 330 core
 
 uniform vec3 u_LightPos;       // The position of the light in eye space.
-
-varying vec3 v_Position;       // Interpolated position for this fragment.
-							   // triangle per fragment.
+varying vec3 v_Position;       // Interpolated position for this fragment triangle per fragment.
 varying vec3 v_Normal;         // Interpolated normal for this fragment.
 
 void main()

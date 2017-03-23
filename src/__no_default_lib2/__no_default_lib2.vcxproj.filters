@@ -50,5 +50,11 @@
     <ClInclude Include="lext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fhlsl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vhlsl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

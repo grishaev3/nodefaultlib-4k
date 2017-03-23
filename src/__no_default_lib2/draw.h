@@ -102,7 +102,6 @@ void l_draw_plane()
 	glNormalPointer(GL_FLOAT, sizeof(float) * 3, (void*)0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
-
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
 
 	glDisableClientState(GL_NORMAL_ARRAY);

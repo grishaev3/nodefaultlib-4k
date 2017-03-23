@@ -115,6 +115,13 @@ bool on_init()
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
 
+	/* 34..bytes 
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	*/
+
 	return true;
 }
 
@@ -162,12 +169,6 @@ void on_render()
 	// 1. Draw scene as normal in multisampled buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, g_framebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//glLoadMatrixf((const GLfloat*)&g_prj_view.m);	// current
-	//glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
 
 	/* main draw */
 #ifdef IS_SHADING
