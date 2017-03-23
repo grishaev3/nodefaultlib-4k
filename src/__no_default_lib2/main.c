@@ -37,7 +37,7 @@ extern "C" {
 
 
 extern GLuint g_framebuffer;
-extern GLenum g_ShadingProgram;
+extern GLenum g_shadingProgram;
 
 /* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
 HWND  g_hWnd = NULL;
@@ -173,7 +173,7 @@ void on_render()
 	/* main draw */
 #ifdef IS_SHADING
 
-	glUseProgram(g_ShadingProgram);
+	glUseProgram(g_shadingProgram);
 	lUniformMatrix4fv("u_view", &g_view.m);
 	lUniformMatrix4fv("u_proj", &g_projection.m);
 	float lightPos[4] = { 0, 1, -1, 0 };

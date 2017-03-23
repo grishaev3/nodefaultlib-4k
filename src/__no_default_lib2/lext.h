@@ -11,9 +11,9 @@
 #include "fhlsl.h"
 
 #ifdef _DEBUG
-#define NUMFUNCIONES 28
+#define NUMFUNCIONES 29
 #else
-#define NUMFUNCIONES 24
+#define NUMFUNCIONES 25
 #endif
 
 void *glf[NUMFUNCIONES];
@@ -45,13 +45,14 @@ void *glf[NUMFUNCIONES];
 #define glBlitFramebuffer					((PFNGLBLITFRAMEBUFFERPROC)glf[21])
 #define glTexImage2DMultisample				((PFNGLTEXIMAGE2DMULTISAMPLEPROC)glf[22])
 
-#define glVertexAttribPointer				((PFNGLVERTEXATTRIBPOINTERPROC)glf[23])
+#define glDeleteFramebuffers				((PFNGLDELETEFRAMEBUFFERSPROC)glf[23])
+#define glDeleteTextures					((PFNGLDELETETEXTURESEXTPROC)glf[24])
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[24])
-#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[25])
-#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[26])
-#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[27])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[25])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[26])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[27])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[28])
 #endif
 
 
@@ -82,7 +83,8 @@ static char *strs[] = {
 	"glBlitFramebuffer",
 	"glTexImage2DMultisample",
 
-	"glVertexAttribPointer",
+	"glDeleteFramebuffers",
+	"glDeleteTextures",
 
 	//--
 #ifdef _DEBUG
@@ -98,8 +100,9 @@ static char *strs[] = {
 extern HWND  g_hWnd;
 extern uint32_t g_maxX;
 extern uint32_t g_maxY;
-GLenum g_ShadingProgram;
+GLenum g_shadingProgram;
 GLuint g_framebuffer;
+GLuint g_textureBuffer;
 GLboolean g_isExtensionInit = 0;
 
 #ifdef _DEBUG
@@ -217,7 +220,7 @@ bool init_gl_ext()
 
 
 /* https://learnopengl.com/#!Advanced-OpenGL/Anti-Aliasing */
-GLuint generateMultiSampleTexture(GLuint samples)
+GLuint generate_multisample_texture(GLuint samples)
 {
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -232,12 +235,17 @@ GLuint generateMultiSampleTexture(GLuint samples)
 
 bool gl_framebuffer()
 {
+	if (g_framebuffer)
+		glDeleteFramebuffers(1, &g_framebuffer);
+	if (g_textureBuffer)
+		glDeleteTextures(1, &g_textureBuffer);
+
 	// Framebuffers
 	glGenFramebuffers(1, &g_framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, g_framebuffer);
 	// Create a multisampled color attachment texture
-	GLuint textureColorBufferMultiSampled = generateMultiSampleTexture(4);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled, 0);
+	g_textureBuffer = generate_multisample_texture(4);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, g_textureBuffer, 0);
 	// Create a renderbuffer object for depth and stencil attachments
 	GLuint rbo;
 	glGenRenderbuffers(1, &rbo);
@@ -259,12 +267,12 @@ bool gl_framebuffer()
 
 void lUniform4fv(const char *param, GLfloat *x)
 {
-	GLint loc = glGetUniformLocation(g_ShadingProgram, param);
+	GLint loc = glGetUniformLocation(g_shadingProgram, param);
 	glUniform4fv(loc, 1, x);
 }
 void lUniformMatrix4fv(const char *param, GLfloat *x)
 {
-	GLint loc = glGetUniformLocation(g_ShadingProgram, param);
+	GLint loc = glGetUniformLocation(g_shadingProgram, param);
 	glUniformMatrix4fv(loc, 1, false, x);
 }
 
@@ -280,8 +288,10 @@ bool load_shaders()
 
 #ifdef _DEBUG
 	// Get Vertex And Fragment Shader Sources
-	my_vertex_shader_source = read_file("v.hlsl");
-	my_fragment_shader_source = read_file("f.hlsl");
+	char buffer[MAX_PATH];
+	GetModuleFileNameA(NULL, buffer, MAX_PATH);
+	my_vertex_shader_source = read_file("..\\..\\..\\shd\v.hlsl");
+	my_fragment_shader_source = read_file("..\\..\\shd\f.hlsl");
 	if (!my_vertex_shader_source || !my_fragment_shader_source)
 		return false;
 #else
@@ -291,7 +301,7 @@ bool load_shaders()
 #endif
 
 	// Create Shader And Program Objects
-	g_ShadingProgram = glCreateProgram();
+	g_shadingProgram = glCreateProgram();
 	my_vertex_shader = glCreateShader(GL_VERTEX_SHADER_ARB);
 	my_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
 
@@ -314,11 +324,11 @@ bool load_shaders()
 #endif
 
 	// Attach The Shader Objects To The Program Object
-	glAttachShader(g_ShadingProgram, my_vertex_shader);
-	glAttachShader(g_ShadingProgram, my_fragment_shader);
+	glAttachShader(g_shadingProgram, my_vertex_shader);
+	glAttachShader(g_shadingProgram, my_fragment_shader);
 
 	// Link The Program Object
-	glLinkProgram(g_ShadingProgram);
+	glLinkProgram(g_shadingProgram);
 
 	return true;
 }

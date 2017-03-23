@@ -62,11 +62,12 @@ void l_calculate_normals()
 		vec3_t *b = (vec3_t*) { g_vertex_buffer_data[index1] };
 		vec3_t *c = (vec3_t*) { g_vertex_buffer_data[index2] };
 
-		vec3_t dir = v3_cross(v3_sub(*b, *a), v3_sub(*c, *a));
+		vec3_t dir = v3_norm(v3_cross(v3_sub(*b, *a), v3_sub(*c, *a)));
+		vec3_t ndir = (vec3_t) { -dir.x, -dir.y, -dir.z };
 
 		n_normal_buffer_data[index0] =
 			n_normal_buffer_data[index1] =
-			n_normal_buffer_data[index2] = v3_norm(dir);
+			n_normal_buffer_data[index2] = ndir;
 
 		/*vec3_t dir = Vector3.Cross(b - a, c - a);
 		vec3_t norm = Vector3.Normalize(dir);*/
