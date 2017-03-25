@@ -27,7 +27,6 @@ bld/
 *.clw
 *.pdb
 *.obj
-*.exe
 *.pch
 *.vspscc
 *.vsmdi
