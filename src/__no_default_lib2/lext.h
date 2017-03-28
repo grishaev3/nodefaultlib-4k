@@ -15,6 +15,7 @@
 #else
 #define NUMFUNCIONES 25
 #endif
+#include "io.h"
 
 void *glf[NUMFUNCIONES];
 
@@ -276,22 +277,31 @@ void lUniformMatrix4fv(const char *param, GLfloat *x)
 	glUniformMatrix4fv(loc, 1, false, x);
 }
 
+
+
 bool load_shaders()
 {
-	char errorLog[MAX_PATH];
-	ZeroMemory(errorLog, MAX_PATH);
-
 	GLenum my_vertex_shader;
 	GLenum my_fragment_shader;
 	char *my_vertex_shader_source;
 	char *my_fragment_shader_source;
 
 #ifdef _DEBUG
-	// Get Vertex And Fragment Shader Sources
+	// Get Vertex and Fragment Shader Sources
+	char errorLog[MAX_PATH] = { 0 };
+
 	char buffer[MAX_PATH];
+	char sourcePath[MAX_PATH];
+	const char *vhlEnding = "\\shd\\v.hlsl";
+	const char *fhlEnding = "\\shd\\f.hlsl";
 	GetModuleFileNameA(NULL, buffer, MAX_PATH);
-	my_vertex_shader_source = read_file("..\\..\\..\\shd\v.hlsl");
-	my_fragment_shader_source = read_file("..\\..\\shd\f.hlsl");
+
+	size_t sourcePathLength = last_index_of(buffer, '\\', 3);
+	memcpy(sourcePath, buffer, sourcePathLength);
+	strcpy(sourcePath + sourcePathLength, vhlEnding);
+	my_vertex_shader_source = read_file(sourcePath);
+	strcpy(sourcePath + sourcePathLength, fhlEnding);
+	my_fragment_shader_source = read_file(sourcePath);
 	if (!my_vertex_shader_source || !my_fragment_shader_source)
 		return false;
 #else

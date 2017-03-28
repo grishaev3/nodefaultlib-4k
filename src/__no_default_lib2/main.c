@@ -56,11 +56,11 @@ float g_cameraAngle;
 vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
-float g_radius = 2.0f;
-float g_radiusCoeff = 0.1f;
+float g_radius = 2.6f;
+float g_radiusCoeff = 0.05f;
 uint32_t g_segCount = 7;
-uint32_t g_maxBlockCount = 16;
-uint32_t g_maxWindingCount = 5;
+uint32_t g_maxBlockCount = 18;
+uint32_t g_maxWindingCount = 8;
 geometry_ring *g_rings;
 
 bool on_init()
@@ -115,7 +115,7 @@ bool on_init()
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
 
-	/* 34..bytes 
+	/* 34..bytes
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
@@ -137,24 +137,24 @@ void on_resize(int maxX, int maxY)
 	if (g_isExtensionInit) gl_framebuffer();
 }
 
-void on_render()
+void on_render(uint32_t frameTime)
 {
 	//float startFrame = glutGet(GLUT_ELAPSED_TIME);
 	float startFrame = 0;
 
 	// camera fly calculate
-	g_cameraAngle += g_deltaTime * g_speed; // ~0.15
-	float s, c, radius = 0.15f;
+	g_cameraAngle += g_deltaTime * 10; // ~0.15
+	float s, c, radius = 0.5f;
 	lsincosf(g_cameraAngle * Deg2Rad, &s, &c);
 	g_to.x = c*radius;	g_to.y = s*radius;
 	g_view = m4_look_at(g_from, g_to, g_up);
 
 
 #ifdef IS_MOVE	// move camera
-	float deltaCameraZ = 0.01f;
+	float deltaCameraZ = 0.05f;
 	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
-		if (move_ring(deltaCameraZ, pRing) > 1.0f) {
+		if (move_ring(deltaCameraZ, pRing) > 1.2f) {
 
 			free_ring(pRing);
 			pRing->blockCount = g_maxBlockCount;
@@ -276,7 +276,7 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 		if (msg.message == WM_QUIT)
 			break;
 
-		on_render();
+		on_render(SKIP_TICKS);
 
 		next_game_tick += SKIP_TICKS;
 		sleep_time = next_game_tick - GetTickCount();

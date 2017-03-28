@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint32_t countlines(FILE *fp)
+uint32_t count_lines(FILE *fp)
 {
 	uint32_t c, lines = 0;
 	fseek(fp, 0, SEEK_SET);
@@ -14,6 +14,19 @@ uint32_t countlines(FILE *fp)
 		if (c == '\n') ++lines;
 	}
 	return lines;
+}
+
+int32_t last_index_of(const char *src, const char ch, int level)
+{
+	char buf[260] = { 0 };
+	int32_t len = -1;
+	strcpy(buf, src);
+	while (level--) {
+		const char *dst = strrchr(buf, ch);
+		len = dst - buf;
+		buf[len] = '\0';
+	}
+	return len;
 }
 
 char* read_file(const char *fileName)
