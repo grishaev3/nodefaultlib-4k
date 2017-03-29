@@ -101,7 +101,7 @@ static char *strs[] = {
 extern HWND  g_hWnd;
 extern uint32_t g_maxX;
 extern uint32_t g_maxY;
-GLenum g_shadingProgram;
+GLenum g_shadingProgram[2];
 GLuint g_framebuffer;
 GLuint g_textureBuffer;
 GLboolean g_isExtensionInit = 0;
@@ -264,57 +264,25 @@ bool gl_framebuffer()
 }
 
 
-void lUniform4fv(const char *param, GLfloat *x)
+void lUniform4fv(const char *param, GLfloat *x, uint32_t prgIndex)
 {
-	GLint loc = glGetUniformLocation(g_shadingProgram, param);
+	GLint loc = glGetUniformLocation(prgIndex, param);
 	glUniform4fv(loc, 1, x);
 }
-void lUniformMatrix4fv(const char *param, GLfloat *x)
+void lUniformMatrix4fv(const char *param, GLfloat *x, uint32_t prgIndex)
 {
-	GLint loc = glGetUniformLocation(g_shadingProgram, param);
+	GLint loc = glGetUniformLocation(g_shadingProgram[prgIndex], param);
 	glUniformMatrix4fv(loc, 1, false, x);
 }
 
-
-
-bool load_shaders()
+bool create_shaders(const char *my_vertex_shader_source, const char *my_fragment_shader_source, uint32_t prgIndex)
 {
+	char errorLog[MAX_PATH] = { 0 };
 	GLenum my_vertex_shader;
 	GLenum my_fragment_shader;
-	char *my_vertex_shader_source;
-	char *my_fragment_shader_source;
-
-#ifdef _DEBUG
-	// Get Vertex and Fragment Shader Sources
-	char errorLog[MAX_PATH] = { 0 };
-
-	char buffer[MAX_PATH];
-	char sourcePath[MAX_PATH];
-	const char *vhlEnding = "\\shd\\v.hlsl";
-#ifdef IS_SHADING
-	const char *fhlEnding = "\\shd\\f.hlsl";
-#else
-	const char *fhlEnding = "\\shd\\wire_f.hlsl";
-#endif
-
-	GetModuleFileNameA(NULL, buffer, MAX_PATH);
-
-	size_t sourcePathLength = last_index_of(buffer, '\\', 3);
-	memcpy(sourcePath, buffer, sourcePathLength);
-	strcpy(sourcePath + sourcePathLength, vhlEnding);
-	my_vertex_shader_source = read_file(sourcePath);
-	strcpy(sourcePath + sourcePathLength, fhlEnding);
-	my_fragment_shader_source = read_file(sourcePath);
-	if (!my_vertex_shader_source || !my_fragment_shader_source)
-		return false;
-#else
-	/* GLSL type checker and minifier http://www.ctrl-alt-test.fr/?p=287 */
-	my_vertex_shader_source = v_hlsl;
-	my_fragment_shader_source = f_hlsl;
-#endif
 
 	// Create Shader And Program Objects
-	g_shadingProgram = glCreateProgram();
+	g_shadingProgram[prgIndex] = glCreateProgram();
 	my_vertex_shader = glCreateShader(GL_VERTEX_SHADER_ARB);
 	my_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
 
@@ -337,11 +305,11 @@ bool load_shaders()
 #endif
 
 	// Attach The Shader Objects To The Program Object
-	glAttachShader(g_shadingProgram, my_vertex_shader);
-	glAttachShader(g_shadingProgram, my_fragment_shader);
+	glAttachShader(g_shadingProgram[prgIndex], my_vertex_shader);
+	glAttachShader(g_shadingProgram[prgIndex], my_fragment_shader);
 
 	// Link The Program Object
-	glLinkProgram(g_shadingProgram);
+	glLinkProgram(g_shadingProgram[prgIndex]);
 
 	return true;
 }

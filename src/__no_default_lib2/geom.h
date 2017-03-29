@@ -68,14 +68,10 @@ float move_ring(float deltaZ, geometry_ring *pRing)
 	return pRing->pos[0].m32;
 }
 
-void draw_ring(const geometry_ring *ring)
+void draw_ring(const geometry_ring *ring, uint32_t prgIndex)
 {
 	for (uint32_t i = 0; i < ring->posLength; i++) {
-		//glPushMatrix();
-		//glMultMatrixf(&ring->pos[i]);
-
-		lUniformMatrix4fv("u_world", &ring->pos[i]);
+		lUniformMatrix4fv("u_world", &ring->pos[i], prgIndex);
 		l_draw_plane();
-		//glPopMatrix();
 	}
 }

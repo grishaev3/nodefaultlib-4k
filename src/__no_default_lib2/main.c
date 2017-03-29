@@ -2,9 +2,11 @@
 #pragma comment(linker, "/MERGE:.rdata=.text")
 #pragma comment(linker, "/SECTION:.text,EWR")
 
-//#define IS_MOVE
-//#define IS_SHADING
+#define IS_MOVE
 //#define IS_STATIC_NORMALS
+
+#define LIT_SHD	0
+#define WRF_SHD	1
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
@@ -31,13 +33,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif  /* __cplusplus */
-	int _fltused = 0x9875;
+#include "wire_vhlsl.h"
+#include "wire_fhlsl.h"
+int _fltused = 0x9875;
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
 
+extern GLenum g_shadingProgram[2];
 extern GLuint g_framebuffer;
-extern GLenum g_shadingProgram;
 
 /* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
 HWND  g_hWnd = NULL;
@@ -77,11 +81,31 @@ bool on_init()
 #ifdef IS_STATIC_NORMALS
 	l_calculate_normals();
 #endif
-
 	l_create_vertex_array();
 
-	if (!load_shaders())
-		return false;
+#ifdef _DEBUG
+	char *vs_source0 = malloc(1024);
+	char *fs_source0 = malloc(1024);
+	char *vs_source1 = malloc(1024);
+	char *fs_source1 = malloc(1024);
+	load_shaders("\\shd\\v.hlsl", "\\shd\\f.hlsl", vs_source0, fs_source0);
+	if (vs_source0 && fs_source0)
+		create_shaders(vs_source0, fs_source0, LIT_SHD);
+
+	load_shaders("\\shd\\wire_v.hlsl", "\\shd\\wire_f.hlsl", vs_source1, fs_source1);
+	if (vs_source1 && fs_source1)
+		create_shaders(vs_source1, fs_source1, WRF_SHD);
+
+	free(vs_source0);
+	free(fs_source0);
+	free(vs_source1);
+	free(fs_source1);
+#else
+	/* GLSL type checker and minifier http://www.ctrl-alt-test.fr/?p=287 */
+	create_shaders(v_hlsl, f_hlsl, LIT_SHD);
+	create_shaders(wire_v_hlsl, wire_f_hlsl, WRF_SHD);
+#endif
+
 
 	// memory usage
 	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
@@ -98,12 +122,6 @@ bool on_init()
 		alloc_ring(pRing);
 		generate_ring_winding((float)i, g_radius, g_radiusCoeff, pRing);
 	}
-
-#ifdef IS_SHADING
-	glPolygonMode(GL_FRONT, GL_FILL);
-#else
-	glPolygonMode(GL_FRONT, GL_LINE);
-#endif// IS_SHADING
 
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
@@ -161,17 +179,21 @@ void on_render(uint32_t frameTime)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/* main draw */
-	glUseProgram(g_shadingProgram);
-	lUniformMatrix4fv("u_view", &g_view.m);
-	lUniformMatrix4fv("u_proj", &g_projection.m);
-
-#ifdef IS_SHADING
-	float lightPos[4] = { 0, 1, -1, 0 };
-	lUniform4fv("u_LightPos", lightPos);
-#endif // IS_SHADING
+	glPolygonMode(GL_FRONT, GL_LINE);
+	glUseProgram(g_shadingProgram[WRF_SHD]);
+	lUniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
+	lUniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
-		draw_ring(&g_rings[i]);
+		draw_ring(&g_rings[i], WRF_SHD);
 
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glUseProgram(g_shadingProgram[LIT_SHD]);
+	lUniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
+	lUniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
+	float lightPos[4] = { 0, 1, -1, 0 };
+	lUniform4fv("u_LightPos", lightPos, LIT_SHD);
+	for (uint32_t i = 0; i < g_segCount; i++)
+		draw_ring(&g_rings[i], LIT_SHD);
 
 	// 2. Now blit multisampled buffer(s) to default framebuffers
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_framebuffer);

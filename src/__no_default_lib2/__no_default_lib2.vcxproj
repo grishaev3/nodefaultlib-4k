@@ -172,7 +172,10 @@
     </Link>
     <PreBuildEvent>
       <Command>$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\v.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\vhlsl.h
-$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\f.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\fhlsl.h</Command>
+$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\f.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\fhlsl.h
+
+$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\wire_v.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\wire_vhlsl.h
+$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\wire_f.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\wire_fhlsl.h</Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>$(ProjectDir)..\..\pkg\upx.exe $(TargetPath)</Command>
@@ -211,6 +214,8 @@ $(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..
     <ClInclude Include="math_3d.h" />
     <ClInclude Include="tests.h" />
     <ClInclude Include="vhlsl.h" />
+    <ClInclude Include="wire_fhlsl.h" />
+    <ClInclude Include="wire_vhlsl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

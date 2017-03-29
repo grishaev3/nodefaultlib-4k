@@ -29,19 +29,41 @@ int32_t last_index_of(const char *src, const char ch, int level)
 	return len;
 }
 
-char* read_file(const char *fileName)
+char* read_file(char buffer[], const char *fileName)
 {
 	FILE * fp;
-	fp = fopen(fileName, "r");
+	fp = fopen(fileName, "r+");
 	if (fp == NULL)	return NULL;
 	fseek(fp, 0, SEEK_END);
 	size_t fileSize = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
-	char* result = (char*)malloc(fileSize);
-	memset(result, 0, fileSize);
-	size_t chars_read = fread(result, sizeof(char), fileSize, fp);
+	//char* result = (char*)malloc(fileSize);
+	//memset(result, 0, fileSize);
+
+	size_t chars_read = fread(buffer, sizeof(char), fileSize, fp);
+
+
 	fclose(fp);
-	return result;
+	//free(result);
+	//return result;
+}
+
+bool load_shaders(const char *vhlEnding, const char *fhlEnding,
+	char my_vertex_shader_source[], char my_fragment_shader_source[])
+{
+	char buffer[MAX_PATH];
+	char sourcePath[MAX_PATH];
+
+	GetModuleFileNameA(NULL, buffer, MAX_PATH);
+
+	size_t sourcePathLength = last_index_of(buffer, '\\', 3);
+	memcpy(sourcePath, buffer, sourcePathLength);
+	strcpy(sourcePath + sourcePathLength, vhlEnding);
+	read_file(my_vertex_shader_source, sourcePath);
+	strcpy(sourcePath + sourcePathLength, fhlEnding);
+	read_file(my_fragment_shader_source, sourcePath);
+	if (!my_vertex_shader_source || !my_fragment_shader_source)
+		return false;
 }
 
 #endif // _DEBUG
