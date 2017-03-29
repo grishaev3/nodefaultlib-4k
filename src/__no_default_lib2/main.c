@@ -2,8 +2,9 @@
 #pragma comment(linker, "/MERGE:.rdata=.text")
 #pragma comment(linker, "/SECTION:.text,EWR")
 
-#define IS_MOVE
-#define IS_SHADING
+//#define IS_MOVE
+#define IS_SHADING	// TODO: not work without it
+//#define IS_STATIC_NORMALS
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
@@ -35,7 +36,6 @@ extern "C" {
 }
 #endif  /* __cplusplus */
 
-
 extern GLuint g_framebuffer;
 extern GLenum g_shadingProgram;
 
@@ -58,9 +58,9 @@ mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
 float g_radius = 2.6f;
 float g_radiusCoeff = 0.05f;
-uint32_t g_segCount = 7;
-uint32_t g_maxBlockCount = 18;
-uint32_t g_maxWindingCount = 8;
+uint32_t g_segCount = 7;		// кол-во блоков в окружности
+uint32_t g_maxBlockCount = 18;	// длинна тунеля
+uint32_t g_maxWindingCount = 8;	// кол-во слоёв (мотков)
 geometry_ring *g_rings;
 
 bool on_init()
@@ -75,16 +75,14 @@ bool on_init()
 	gl_framebuffer();
 
 #ifdef IS_SHADING
+#ifdef IS_STATIC_NORMALS
 	l_calculate_normals();
+#endif
 	if (!load_shaders())
 		return false;
 #endif // IS_SHADING
 
 	l_create_vertex_array();
-
-	//g_geometry_info.numberOfBlock = 3;	// кол-во блоков в окружности
-	//g_geometry_info.windingCount = 1;		// кол-во слоёв (мотков)
-	//g_geometry_info.segCount = 10;		// длинна тунеля
 
 	// memory usage
 	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
@@ -114,13 +112,6 @@ bool on_init()
 
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
-
-	/* 34..bytes
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	*/
 
 	return true;
 }
