@@ -3,7 +3,7 @@
 #pragma comment(linker, "/SECTION:.text,EWR")
 
 //#define IS_MOVE
-#define IS_SHADING	// TODO: not work without it
+//#define IS_SHADING
 //#define IS_STATIC_NORMALS
 
 #define WIN32_LEAN_AND_MEAN
@@ -74,15 +74,14 @@ bool on_init()
 
 	gl_framebuffer();
 
-#ifdef IS_SHADING
 #ifdef IS_STATIC_NORMALS
 	l_calculate_normals();
 #endif
-	if (!load_shaders())
-		return false;
-#endif // IS_SHADING
 
 	l_create_vertex_array();
+
+	if (!load_shaders())
+		return false;
 
 	// memory usage
 	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
@@ -162,14 +161,13 @@ void on_render(uint32_t frameTime)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/* main draw */
-#ifdef IS_SHADING
-
 	glUseProgram(g_shadingProgram);
 	lUniformMatrix4fv("u_view", &g_view.m);
 	lUniformMatrix4fv("u_proj", &g_projection.m);
+
+#ifdef IS_SHADING
 	float lightPos[4] = { 0, 1, -1, 0 };
 	lUniform4fv("u_LightPos", lightPos);
-
 #endif // IS_SHADING
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i]);

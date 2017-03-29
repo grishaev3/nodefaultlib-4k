@@ -264,8 +264,6 @@ bool gl_framebuffer()
 }
 
 
-#ifdef IS_SHADING
-
 void lUniform4fv(const char *param, GLfloat *x)
 {
 	GLint loc = glGetUniformLocation(g_shadingProgram, param);
@@ -293,7 +291,12 @@ bool load_shaders()
 	char buffer[MAX_PATH];
 	char sourcePath[MAX_PATH];
 	const char *vhlEnding = "\\shd\\v.hlsl";
+#ifdef IS_SHADING
 	const char *fhlEnding = "\\shd\\f.hlsl";
+#else
+	const char *fhlEnding = "\\shd\\wire_f.hlsl";
+#endif
+
 	GetModuleFileNameA(NULL, buffer, MAX_PATH);
 
 	size_t sourcePathLength = last_index_of(buffer, '\\', 3);
@@ -342,4 +345,3 @@ bool load_shaders()
 
 	return true;
 }
-#endif
