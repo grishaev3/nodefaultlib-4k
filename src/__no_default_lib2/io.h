@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef _DEBUG
+#include <Windows.h>
 #include <string.h> 
 #include <stdint.h>
 #include <stdio.h>
@@ -29,7 +30,7 @@ int32_t last_index_of(const char *src, const char ch, int level)
 	return len;
 }
 
-char* read_file(char buffer[], const char *fileName)
+size_t read_file(char buffer[], const char *fileName)
 {
 	FILE * fp;
 	fp = fopen(fileName, "r+");
@@ -39,16 +40,13 @@ char* read_file(char buffer[], const char *fileName)
 	fseek(fp, 0, SEEK_SET);
 	//char* result = (char*)malloc(fileSize);
 	//memset(result, 0, fileSize);
-
 	size_t chars_read = fread(buffer, sizeof(char), fileSize, fp);
-
-
 	fclose(fp);
+	return chars_read;
 	//free(result);
-	//return result;
 }
 
-bool load_shaders(const char *vhlEnding, const char *fhlEnding,
+BOOL load_shaders(const char *vhlEnding, const char *fhlEnding,
 	char my_vertex_shader_source[], char my_fragment_shader_source[])
 {
 	char buffer[MAX_PATH];
@@ -63,7 +61,7 @@ bool load_shaders(const char *vhlEnding, const char *fhlEnding,
 	strcpy(sourcePath + sourcePathLength, fhlEnding);
 	read_file(my_fragment_shader_source, sourcePath);
 	if (!my_vertex_shader_source || !my_fragment_shader_source)
-		return false;
+		return FALSE;
 }
 
 #endif // _DEBUG
