@@ -245,6 +245,24 @@ int on_exit(void)
 	return 0;
 }
 
+DWORD get_exe_size()
+{
+	char fileName[MAX_PATH];
+	GetModuleFileNameA(NULL, fileName, MAX_PATH);
+	HANDLE hFile = CreateFile(fileName,
+		GENERIC_READ,
+		0,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+
+	DWORD fileSizeHigh;
+	GetFileSize(hFile, &fileSizeHigh);
+	CloseHandle(hFile);
+	return fileSizeHigh;
+}
+
 #ifdef _DEBUG
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 #else
@@ -276,6 +294,8 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	int32_t sleep_time = 0;
 	int32_t next_game_tick = GetTickCount();
 	const uint32_t SKIP_TICKS = (1000 / g_frames_per_second);
+
+	uint32_t size = get_exe_size();
 
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
