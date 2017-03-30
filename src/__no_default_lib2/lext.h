@@ -11,9 +11,9 @@
 #include "fhlsl.h"
 
 #ifdef _DEBUG
-#define NUMFUNCIONES 29
+#define NUMFUNCIONES 30
 #else
-#define NUMFUNCIONES 25
+#define NUMFUNCIONES 26
 #endif
 #include "io.h"
 
@@ -48,12 +48,13 @@ void *glf[NUMFUNCIONES];
 
 #define glDeleteFramebuffers				((PFNGLDELETEFRAMEBUFFERSPROC)glf[23])
 #define glDeleteTextures					((PFNGLDELETETEXTURESEXTPROC)glf[24])
+#define glDeleteRenderbuffers				((PFNGLDELETERENDERBUFFERSPROC)glf[25])
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[25])
-#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[26])
-#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[27])
-#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[28])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[26])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[27])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[28])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[29])
 #endif
 
 
@@ -85,7 +86,8 @@ static char *strs[] = {
 	"glTexImage2DMultisample",
 
 	"glDeleteFramebuffers",
-	"glDeleteTextures",
+	"glDeleteTexturesEXT",
+	"glDeleteRenderbuffers",
 
 	//--
 #ifdef _DEBUG
@@ -104,6 +106,7 @@ extern uint32_t g_maxY;
 GLenum g_shadingProgram[2];
 GLuint g_framebuffer;
 GLuint g_textureBuffer;
+GLuint g_renderBuffer;
 GLboolean g_isExtensionInit = 0;
 
 #ifdef _DEBUG
@@ -240,6 +243,8 @@ bool gl_framebuffer()
 		glDeleteFramebuffers(1, &g_framebuffer);
 	if (g_textureBuffer)
 		glDeleteTextures(1, &g_textureBuffer);
+	if (g_renderBuffer)
+		glDeleteRenderbuffers(1, &g_renderBuffer);
 
 	// Framebuffers
 	glGenFramebuffers(1, &g_framebuffer);
@@ -248,13 +253,13 @@ bool gl_framebuffer()
 	g_textureBuffer = generate_multisample_texture(4);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, g_textureBuffer, 0);
 	// Create a renderbuffer object for depth and stencil attachments
-	GLuint rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+
+	glGenRenderbuffers(1, &g_renderBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, g_renderBuffer);
 	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4,
 		GL_DEPTH24_STENCIL8, g_maxX, g_maxY);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, g_renderBuffer);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		//cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;

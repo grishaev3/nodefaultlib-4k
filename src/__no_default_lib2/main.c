@@ -35,7 +35,7 @@ extern "C" {
 #endif  /* __cplusplus */
 #include "wire_vhlsl.h"
 #include "wire_fhlsl.h"
-int _fltused = 0x9875;
+	int _fltused = 0x9875;
 #ifdef __cplusplus
 }
 #endif  /* __cplusplus */
@@ -251,10 +251,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLin
 int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #endif // DEBUG
 {
-	MSG msg;
-	WNDCLASS wc;
-	ZeroMemory(&msg, sizeof(MSG));
-	ZeroMemory(&wc, sizeof(WNDCLASS));
+	MSG msg = { 0 };
+	WNDCLASS wc = { 0 };
 	wc.lpfnWndProc = WndProc;
 	wc.hInstance = hInstance;
 	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
