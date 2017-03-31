@@ -218,8 +218,7 @@ void init_opengl(void)
 {
 	int pixelFormat;
 
-	PIXELFORMATDESCRIPTOR pfd;
-	ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
+	PIXELFORMATDESCRIPTOR pfd = { 0 };
 	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
 	pfd.nVersion = 1;
 	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
@@ -248,19 +247,13 @@ int on_exit(void)
 DWORD get_exe_size()
 {
 	char fileName[MAX_PATH];
-	GetModuleFileNameA(NULL, fileName, MAX_PATH);
-	HANDLE hFile = CreateFile(fileName,
-		GENERIC_READ,
-		0,
-		NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
+	BY_HANDLE_FILE_INFORMATION fileinfo;
 
-	DWORD fileSizeHigh;
-	GetFileSize(hFile, &fileSizeHigh);
+	GetModuleFileNameA(NULL, fileName, MAX_PATH);
+	HANDLE hFile = CreateFileA(fileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	GetFileInformationByHandle(hFile, &fileinfo);
 	CloseHandle(hFile);
-	return fileSizeHigh;
+	return fileinfo.nFileSizeLow;
 }
 
 #ifdef _DEBUG
@@ -280,8 +273,13 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	if (!RegisterClass(&wc))
 		return 1;
 
+	char buf[MAX_PATH];
+	buf[0] = '_'; buf[1] = '_';
+	DWORD size = get_exe_size();
+	l_itoa(get_exe_size(), &buf[2], 10);
+	strcat(buf + strlen(buf), "b");
 	g_hWnd = CreateWindow(wc.lpszClassName,
-		L"__4Kb",
+		buf,
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		0, 0, g_maxX, g_maxY, 0, 0, hInstance, NULL);
 
@@ -294,8 +292,6 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	int32_t sleep_time = 0;
 	int32_t next_game_tick = GetTickCount();
 	const uint32_t SKIP_TICKS = (1000 / g_frames_per_second);
-
-	uint32_t size = get_exe_size();
 
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {

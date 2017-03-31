@@ -4,9 +4,17 @@
 
 HANDLE g_hHeap;
 
-void l_zero_mem(LPVOID pvMem, size_t dwBytes)
+void *l_memset(void *s, int c, size_t n)
 {
-	ZeroMemory(pvMem, dwBytes);
+	unsigned char* p = s;
+	while (n--)
+		*p++ = (unsigned char)c;
+	return s;
+}
+
+inline void l_zero_mem(LPVOID pvMem, size_t dwBytes)
+{
+	l_memset(pvMem, 0x0, dwBytes);
 }
 
 void l_heap_create(size_t dwInitialSize, size_t dwHaximumSize)

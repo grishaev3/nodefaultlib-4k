@@ -1,12 +1,64 @@
 #pragma once
 
-#ifdef _DEBUG
+
 #include <Windows.h>
 #include <string.h> 
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
+
+// evil C:
+void l_strrev(char *p)
+{
+	char *q = p;
+	while (q && *q) ++q;
+	for (--q; p < q; ++p, --q) {
+		*p = *p ^ *q;
+		*q = *p ^ *q;
+		*p = *p ^ *q;
+	}
+}
+
+// Implementation of itoa()
+char* l_itoa(int num, char* str, int base)
+{
+	int i = 0;
+	bool isNegative = false;
+
+	/* Handle 0 explicitely, otherwise empty string is printed for 0 */
+	if (num == 0) {
+		str[i++] = '0';
+		str[i] = '\0';
+		return str;
+	}
+
+	// In standard itoa(), negative numbers are handled only with 
+	// base 10. Otherwise numbers are considered unsigned.
+	if (num < 0 && base == 10) {
+		isNegative = true;
+		num = -num;
+	}
+
+	// Process individual digits
+	while (num != 0) {
+		int rem = num % base;
+		str[i++] = (rem > 9) ? (rem - 10) + 'a' : rem + '0';
+		num = num / base;
+	}
+
+	// If number is negative, append '-'
+	if (isNegative)
+		str[i++] = '-';
+
+	str[i] = '\0'; // Append string terminator
+	l_strrev(str);	// Reverse the string
+	return str;
+}
+
+#ifdef _DEBUG
 uint32_t count_lines(FILE *fp)
 {
 	uint32_t c, lines = 0;
