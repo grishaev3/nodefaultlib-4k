@@ -266,7 +266,6 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	char buf[MAX_PATH];
 	buf[0] = '_'; buf[1] = '_';
 #ifdef IS_SHOW_SIZE_CAPTION
-	uint32_t size = get_exe_size();
 	l_itoa(get_exe_size(), &buf[2], 10);
 	strcat(buf + strlen(buf), "b");
 #endif // IS_SHOW_SIZE_CAPTION
