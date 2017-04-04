@@ -11,6 +11,7 @@
 
 
 // evil C:
+#ifdef IS_SHOW_SIZE_CAPTION
 void l_strrev(char *p)
 {
 	char *q = p;
@@ -57,6 +58,19 @@ char* l_itoa(int num, char* str, int base)
 	l_strrev(str);	// Reverse the string
 	return str;
 }
+
+DWORD get_exe_size()
+{
+	char fileName[MAX_PATH];
+	BY_HANDLE_FILE_INFORMATION fileinfo;
+
+	GetModuleFileNameA(NULL, fileName, MAX_PATH);
+	HANDLE hFile = CreateFileA(fileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	GetFileInformationByHandle(hFile, &fileinfo);
+	CloseHandle(hFile);
+	return fileinfo.nFileSizeLow;
+}
+#endif // IS_SHOW_SIZE_CAPTION
 
 #ifdef _DEBUG
 uint32_t count_lines(FILE *fp)

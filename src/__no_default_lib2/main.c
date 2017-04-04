@@ -1,8 +1,9 @@
-#pragma comment(linker, "/MERGE:.data=.text")
-#pragma comment(linker, "/MERGE:.rdata=.text")
-#pragma comment(linker, "/SECTION:.text,EWR")
+//#pragma comment(linker, "/MERGE:.data=.text")
+//#pragma comment(linker, "/MERGE:.rdata=.text")
+//#pragma comment(linker, "/SECTION:.text,EWR")
 
 #define IS_MOVE
+#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
 
 #define LIT_SHD	0
@@ -10,6 +11,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
+
 
 #ifdef _DEBUG
 #include <stdio.h>
@@ -244,18 +246,6 @@ int on_exit(void)
 	return 0;
 }
 
-DWORD get_exe_size()
-{
-	char fileName[MAX_PATH];
-	BY_HANDLE_FILE_INFORMATION fileinfo;
-
-	GetModuleFileNameA(NULL, fileName, MAX_PATH);
-	HANDLE hFile = CreateFileA(fileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	GetFileInformationByHandle(hFile, &fileinfo);
-	CloseHandle(hFile);
-	return fileinfo.nFileSizeLow;
-}
-
 #ifdef _DEBUG
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 #else
@@ -275,9 +265,11 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 
 	char buf[MAX_PATH];
 	buf[0] = '_'; buf[1] = '_';
-	DWORD size = get_exe_size();
+#ifdef IS_SHOW_SIZE_CAPTION
+	uint32_t size = get_exe_size();
 	l_itoa(get_exe_size(), &buf[2], 10);
 	strcat(buf + strlen(buf), "b");
+#endif // IS_SHOW_SIZE_CAPTION
 	g_hWnd = CreateWindow(wc.lpszClassName,
 		buf,
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
