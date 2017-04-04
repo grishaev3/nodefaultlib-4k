@@ -1,0 +1,1 @@
+$(ProjectDir)..\..\pkg\upx.exe $(TargetPath)

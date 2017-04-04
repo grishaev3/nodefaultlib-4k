@@ -11,9 +11,9 @@
 #include "fhlsl.h"
 
 #ifdef _DEBUG
-#define NUMFUNCIONES 30
+#define NUMFUNCIONES 29
 #else
-#define NUMFUNCIONES 26
+#define NUMFUNCIONES 25
 #endif
 #include "io.h"
 
@@ -47,14 +47,13 @@ void *glf[NUMFUNCIONES];
 #define glTexImage2DMultisample				((PFNGLTEXIMAGE2DMULTISAMPLEPROC)glf[22])
 
 #define glDeleteFramebuffers				((PFNGLDELETEFRAMEBUFFERSPROC)glf[23])
-#define glDeleteTextures					((PFNGLDELETETEXTURESEXTPROC)glf[24])
-#define glDeleteRenderbuffers				((PFNGLDELETERENDERBUFFERSPROC)glf[25])
+#define glDeleteRenderbuffers				((PFNGLDELETERENDERBUFFERSPROC)glf[24])
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[26])
-#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[27])
-#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[28])
-#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[29])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[25])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[26])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[27])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[28])
 #endif
 
 
@@ -86,9 +85,7 @@ static char *strs[] = {
 	"glTexImage2DMultisample",
 
 	"glDeleteFramebuffers",
-	"glDeleteTexturesEXT",
 	"glDeleteRenderbuffers",
-
 	//--
 #ifdef _DEBUG
 	"glGetObjectParameterivARB",

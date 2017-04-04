@@ -149,7 +149,7 @@
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <StringPooling>true</StringPooling>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
@@ -165,7 +165,7 @@
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
-      <AdditionalOptions>/STUB:stub.bin</AdditionalOptions>
+      <AdditionalOptions>/CRINKLER %(AdditionalOptions)</AdditionalOptions>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <EntryPointSymbol>WinMainCRTStartup</EntryPointSymbol>
@@ -178,7 +178,8 @@ $(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..
 $(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\wire_f.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\wire_fhlsl.h</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>$(ProjectDir)..\..\pkg\upx.exe $(TargetPath)</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
