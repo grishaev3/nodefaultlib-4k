@@ -4,7 +4,6 @@
 #include <GL/gl.h>
 #include <gl/glext.h>
 #include <gl/wglext.h>
-
 #include <stdbool.h>
 
 #include "vhlsl.h"
@@ -56,7 +55,6 @@ void *glf[NUMFUNCIONES];
 #define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[28])
 #endif
 
-
 static char *strs[] = {
 	"glCreateProgram",
 	"glCreateShader",
@@ -95,8 +93,6 @@ static char *strs[] = {
 #endif
 };
 
-
-
 extern HWND  g_hWnd;
 extern uint32_t g_maxX;
 extern uint32_t g_maxY;
@@ -105,6 +101,66 @@ GLuint g_framebuffer;
 GLuint g_textureBuffer;
 GLuint g_renderBuffer;
 GLboolean g_isExtensionInit = 0;
+
+bool init_gl_ext()
+{
+	for (int i = 0; i < NUMFUNCIONES; i++) {
+		glf[i] = wglGetProcAddress(strs[i]);
+		if (!glf[i])
+			return false;
+	}
+	return g_isExtensionInit = true;
+}
+
+void lUniform4fv(const char *param, GLfloat *x, uint32_t prgIndex)
+{
+	GLint loc = glGetUniformLocation(prgIndex, param);
+	glUniform4fv(loc, 1, x);
+}
+void lUniformMatrix4fv(const char *param, GLfloat *x, uint32_t prgIndex)
+{
+	GLint loc = glGetUniformLocation(g_shadingProgram[prgIndex], param);
+	glUniformMatrix4fv(loc, 1, false, x);
+}
+
+bool create_shaders(const char *my_vertex_shader_source, const char *my_fragment_shader_source, uint32_t prgIndex)
+{
+	char errorLog[MAX_PATH] = { 0 };
+	GLenum my_vertex_shader;
+	GLenum my_fragment_shader;
+
+	// Create Shader And Program Objects
+	g_shadingProgram[prgIndex] = glCreateProgram();
+	my_vertex_shader = glCreateShader(GL_VERTEX_SHADER_ARB);
+	my_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
+
+	// Load Shader Sources
+	glShaderSource(my_vertex_shader, 1, &my_vertex_shader_source, NULL);
+	glShaderSource(my_fragment_shader, 1, &my_fragment_shader_source, NULL);
+
+	// Compile The Shaders
+
+	glCompileShader(my_vertex_shader);
+#ifdef _DEBUG
+	if (!check_shader(my_vertex_shader, errorLog))
+		return false;
+#endif
+
+	glCompileShader(my_fragment_shader);
+#ifdef _DEBUG
+	if (!check_shader(my_fragment_shader, errorLog))
+		return false;
+#endif
+
+	// Attach The Shader Objects To The Program Object
+	glAttachShader(g_shadingProgram[prgIndex], my_vertex_shader);
+	glAttachShader(g_shadingProgram[prgIndex], my_fragment_shader);
+
+	// Link The Program Object
+	glLinkProgram(g_shadingProgram[prgIndex]);
+
+	return true;
+}
 
 #ifdef _DEBUG
 bool gl_is_extension_supported(const char * extension)
@@ -209,17 +265,7 @@ bool check_shader(GLuint shader, char * errorLog)
 }
 #endif
 
-bool init_gl_ext()
-{
-	for (int i = 0; i < NUMFUNCIONES; i++) {
-		glf[i] = wglGetProcAddress(strs[i]);
-		if (!glf[i])
-			return false;
-	}
-	return g_isExtensionInit = true;
-}
-
-
+#ifdef IS_AA
 /* https://learnopengl.com/#!Advanced-OpenGL/Anti-Aliasing */
 GLuint generate_multisample_texture(GLuint samples)
 {
@@ -264,54 +310,4 @@ bool gl_framebuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return true;
 }
-
-
-void lUniform4fv(const char *param, GLfloat *x, uint32_t prgIndex)
-{
-	GLint loc = glGetUniformLocation(prgIndex, param);
-	glUniform4fv(loc, 1, x);
-}
-void lUniformMatrix4fv(const char *param, GLfloat *x, uint32_t prgIndex)
-{
-	GLint loc = glGetUniformLocation(g_shadingProgram[prgIndex], param);
-	glUniformMatrix4fv(loc, 1, false, x);
-}
-
-bool create_shaders(const char *my_vertex_shader_source, const char *my_fragment_shader_source, uint32_t prgIndex)
-{
-	char errorLog[MAX_PATH] = { 0 };
-	GLenum my_vertex_shader;
-	GLenum my_fragment_shader;
-
-	// Create Shader And Program Objects
-	g_shadingProgram[prgIndex] = glCreateProgram();
-	my_vertex_shader = glCreateShader(GL_VERTEX_SHADER_ARB);
-	my_fragment_shader = glCreateShader(GL_FRAGMENT_SHADER_ARB);
-
-	// Load Shader Sources
-	glShaderSource(my_vertex_shader, 1, &my_vertex_shader_source, NULL);
-	glShaderSource(my_fragment_shader, 1, &my_fragment_shader_source, NULL);
-
-	// Compile The Shaders
-
-	glCompileShader(my_vertex_shader);
-#ifdef _DEBUG
-	if (!check_shader(my_vertex_shader, errorLog))
-		return false;
-#endif
-
-	glCompileShader(my_fragment_shader);
-#ifdef _DEBUG
-	if (!check_shader(my_fragment_shader, errorLog))
-		return false;
-#endif
-
-	// Attach The Shader Objects To The Program Object
-	glAttachShader(g_shadingProgram[prgIndex], my_vertex_shader);
-	glAttachShader(g_shadingProgram[prgIndex], my_fragment_shader);
-
-	// Link The Program Object
-	glLinkProgram(g_shadingProgram[prgIndex]);
-
-	return true;
-}
+#endif // IS_AA

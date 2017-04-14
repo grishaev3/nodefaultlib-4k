@@ -3,6 +3,7 @@
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
 #define IS_MOVE
+//#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
 
@@ -78,8 +79,10 @@ bool on_init()
 	if (!init_gl_ext())
 		return false;
 
+#ifdef IS_AA
 	gl_framebuffer();
-
+#endif // IS_AA
+	
 #ifdef IS_STATIC_NORMALS
 	l_calculate_normals();
 #endif
@@ -143,8 +146,10 @@ void on_resize(int maxX, int maxY)
 	g_projection = m4_perspective(90.0f, (float)maxX
 		/ maxY, 0.2f, 20.0f);
 
+#ifdef IS_AA
 	/* FrameBuffer gen */
 	if (g_isExtensionInit) gl_framebuffer();
+#endif // IS_AA
 }
 
 void on_render(uint32_t frameTime)
@@ -176,8 +181,12 @@ void on_render(uint32_t frameTime)
 	}
 #endif // IS_MOVE
 
+#ifdef IS_AA
 	// 1. Draw scene as normal in multisampled buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, g_framebuffer);
+#endif // IS_AA
+
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/* main draw */
@@ -196,12 +205,13 @@ void on_render(uint32_t frameTime)
 	lUniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
-
+#ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, g_maxX, g_maxY, 0, 0,
 		g_maxX, g_maxY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+#endif // IS_AA
 
 	/*glBegin(GL_TRIANGLES);
 	glVertex3f(1.0f, 1.0f, -1.0f);
