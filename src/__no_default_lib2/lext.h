@@ -17,6 +17,7 @@
 #include "io.h"
 
 void *glf[NUMFUNCIONES];
+bool check_shader(GLuint shader, char *errorLog);
 
 #define glCreateProgram						((PFNGLCREATEPROGRAMPROC)glf[0])
 #define glCreateShader						((PFNGLCREATESHADERPROC)glf[1])
@@ -250,7 +251,7 @@ int get_pixel_format(HDC hDC)
 	return  0;
 }
 
-bool check_shader(GLuint shader, char * errorLog)
+bool check_shader(GLuint shader, char *errorLog)
 {
 	GLint success = 0;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
@@ -261,7 +262,7 @@ bool check_shader(GLuint shader, char * errorLog)
 		glGetShaderiv(shader, maxLength, &logSize);
 		glGetShaderInfoLog(shader, maxLength, &maxLength, errorLog);
 	}
-	return success;
+	return (bool)success;
 }
 #endif
 

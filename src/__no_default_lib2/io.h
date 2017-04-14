@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <Windows.h>
 #include <string.h> 
 #include <stdint.h>
@@ -8,7 +7,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-
 
 // evil C:
 #ifdef IS_SHOW_SIZE_CAPTION
@@ -128,6 +126,8 @@ BOOL load_shaders(const char *vhlEnding, const char *fhlEnding,
 	read_file(my_fragment_shader_source, sourcePath);
 	if (!my_vertex_shader_source || !my_fragment_shader_source)
 		return FALSE;
+
+	return TRUE;
 }
 
 #endif // _DEBUG

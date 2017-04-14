@@ -2,9 +2,11 @@
 //#pragma comment(linker, "/MERGE:.rdata=.text")
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
+#define _1MB	(1024*1024)
+
 #define IS_MOVE
 //#define IS_AA
-//#define IS_SHOW_SIZE_CAPTION	//+~250b
+#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
 
 #define LIT_SHD	0
@@ -12,7 +14,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
-
 
 #ifdef _DEBUG
 #include <stdio.h>
@@ -82,29 +83,28 @@ bool on_init()
 #ifdef IS_AA
 	gl_framebuffer();
 #endif // IS_AA
-	
+
 #ifdef IS_STATIC_NORMALS
 	l_calculate_normals();
 #endif
 	l_create_vertex_array();
 
 #ifdef _DEBUG
-	char *vs_source0 = malloc(1024);
-	char *fs_source0 = malloc(1024);
-	char *vs_source1 = malloc(1024);
-	char *fs_source1 = malloc(1024);
-	load_shaders("\\shd\\v.hlsl", "\\shd\\f.hlsl", vs_source0, fs_source0);
-	if (vs_source0 && fs_source0)
-		create_shaders(vs_source0, fs_source0, LIT_SHD);
+	char *vs_source0 = (char*)l_malloc(1024);
+	char *fs_source0 = (char*)l_malloc(1024);
+	char *vs_source1 = (char*)l_malloc(1024);
+	char *fs_source1 = (char*)l_malloc(1024);
 
-	load_shaders("\\shd\\wire_v.hlsl", "\\shd\\wire_f.hlsl", vs_source1, fs_source1);
-	if (vs_source1 && fs_source1)
+	if (load_shaders("\\shd\\v.hlsl", "\\shd\\f.hlsl", vs_source0, fs_source0))
+		create_shaders(vs_source0, fs_source0, LIT_SHD);
+	if (load_shaders("\\shd\\wire_v.hlsl", "\\shd\\wire_f.hlsl", vs_source1, fs_source1))
 		create_shaders(vs_source1, fs_source1, WRF_SHD);
 
-	free(vs_source0);
-	free(fs_source0);
-	free(vs_source1);
-	free(fs_source1);
+	int isFree = 0;
+	isFree = l_free(vs_source0);
+	isFree = l_free(fs_source0);
+	isFree = l_free(vs_source1);
+	isFree = l_free(fs_source1);
 #else
 	/* GLSL type checker and minifier http://www.ctrl-alt-test.fr/?p=287 */
 	create_shaders(v_hlsl, f_hlsl, LIT_SHD);
@@ -117,7 +117,6 @@ bool on_init()
 	size_t geomSizeInBytes = (g_maxBlockCount * g_maxWindingCount * sizeof(mat4_t)) * g_segCount;
 
 	/* TODO: dynamic array https://habrahabr.ru/post/324210/ */
-	l_heap_create(geomSizeInBytes, geomSizeInBytes * 2);
 	g_rings = (geometry_ring*)l_malloc(g_ringsSizeInBytes);
 
 	for (uint32_t i = 0; i < g_segCount; i++) {
@@ -186,7 +185,6 @@ void on_render(uint32_t frameTime)
 	glBindFramebuffer(GL_FRAMEBUFFER, g_framebuffer);
 #endif // IS_AA
 
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	/* main draw */
@@ -205,6 +203,7 @@ void on_render(uint32_t frameTime)
 	lUniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
+
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_framebuffer);
@@ -222,7 +221,6 @@ void on_render(uint32_t frameTime)
 	//glutSwapBuffers();
 	//g_deltaTime = (float)(glutGet(GLUT_ELAPSED_TIME) - startFrame) / 1000.0f;
 	g_deltaTime = (float)(16 - startFrame) / 1000.0f;
-
 	SwapBuffers(g_hDC);
 }
 
@@ -273,16 +271,17 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	if (!RegisterClass(&wc))
 		return 1;
 
-	char buf[16] = { 0 };
+	char szCaption[16] = { 0 };
 #ifdef IS_SHOW_SIZE_CAPTION
-	buf[0] = '_'; buf[1] = '_';
-	l_itoa(get_exe_size(), &buf[2], 10);
-	strcat(buf + strlen(buf), "b");
+	szCaption[0] = '_'; szCaption[1] = '_';
+	l_itoa(get_exe_size(), &szCaption[2], 10);
+	strcat(szCaption + strlen(szCaption), "b");
 #endif // IS_SHOW_SIZE_CAPTION
 	g_hWnd = CreateWindow(wc.lpszClassName,
-		buf,
+		szCaption,
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		0, 0, g_maxX, g_maxY, 0, 0, hInstance, NULL);
+
 
 	if (g_hWnd == NULL) return E_FAIL;
 
