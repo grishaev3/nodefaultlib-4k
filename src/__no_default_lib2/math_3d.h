@@ -269,7 +269,7 @@ mat4_t m4_scaling(vec3_t scale) {
 mat4_t m4_rotation_x(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
-	lsincosf(angle_in_rad, &s, &c);
+	l_sincosf(angle_in_rad, &s, &c);
 	return mat4(
 		1, 0, 0, 0,
 		0, c, -s, 0,
@@ -281,7 +281,7 @@ mat4_t m4_rotation_x(float angle_in_rad) {
 mat4_t m4_rotation_y(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
-	lsincosf(angle_in_rad, &s, &c);
+	l_sincosf(angle_in_rad, &s, &c);
 	return mat4(
 		c, 0, s, 0,
 		0, 1, 0, 0,
@@ -293,7 +293,7 @@ mat4_t m4_rotation_y(float angle_in_rad) {
 mat4_t m4_rotation_z(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
-	lsincosf(angle_in_rad, &s, &c);
+	l_sincosf(angle_in_rad, &s, &c);
 	return mat4(
 		c, -s, 0, 0,
 		s, c, 0, 0,
@@ -360,7 +360,7 @@ mat4_t m4_rotation(float angle_in_rad, vec3_t axis) {
 	float x = normalized_axis.x, y = normalized_axis.y, z = normalized_axis.z;
 	//float c = cosf(angle_in_rad), s = sinf(angle_in_rad);
 	float s, c;
-	lsincosf(angle_in_rad, &s, &c);
+	l_sincosf(angle_in_rad, &s, &c);
 
 	return mat4(
 		c + x*x*(1 - c), x*y*(1 - c) - z*s, x*z*(1 - c) + y*s, 0,
@@ -433,7 +433,7 @@ mat4_t m4_rotation(float angle_in_rad, vec3_t axis) {
 */
 mat4_t m4_perspective(float vertical_field_of_view_in_deg, float aspect_ratio, float near_view_distance, float far_view_distance) {
 	float fovy_in_rad = vertical_field_of_view_in_deg / 180 * M_PI;
-	float f = 1.0f / ltanf(fovy_in_rad / 2.0f);
+	float f = 1.0f / l_tanf(fovy_in_rad / 2.0f);
 	float ar = aspect_ratio;
 	float nd = near_view_distance, fd = far_view_distance;
 

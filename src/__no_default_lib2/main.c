@@ -71,7 +71,7 @@ geometry_ring *g_rings;
 
 bool on_init()
 {
-	lsrand(GetTickCount());
+	l_srand(GetTickCount());
 	g_from = vec3(0.0, 0.0, 1.0f);
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
@@ -155,7 +155,7 @@ void on_render(uint32_t frameTime)
 	// camera fly calculate
 	g_cameraAngle += g_deltaTime * 10; // ~0.15
 	float s, c, radius = 0.5f;
-	lsincosf(g_cameraAngle * Deg2Rad, &s, &c);
+	l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
 	g_to.x = c*radius;	g_to.y = s*radius;
 	g_view = m4_look_at(g_from, g_to, g_up);
 

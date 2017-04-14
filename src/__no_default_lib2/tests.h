@@ -27,16 +27,16 @@ void test_trigonometry()
 	float angle = 42.0f;
 	float s, c;
 	float deginrad = angle * Deg2Rad;
-	lsincosf(deginrad, &s, &c);
+	l_sincosf(deginrad, &s, &c);
 
 	FILE *fp = fopen("debug.txt", "w");
 	if (!fp) return;
 
 	fprintf(fp, "sin %d: %f{%f}\n", (int)angle, s, sinf(deginrad));
 	fprintf(fp, "cos %d: %f{%f}\n", (int)angle, c, cosf(deginrad));
-	fprintf(fp, "tan %d: %f{%f}\n", (int)angle, ltanf(deginrad), tanf(deginrad));
-	fprintf(fp, "sqrt %d: %f{%f}\n", (int)angle, lsqrtf(deginrad), sqrtf(deginrad));
-	fprintf(fp, "fabs %f: %f{%f}\n", -angle * M_PI, labsf(-angle * M_PI), fabsf(-angle * M_PI));
+	fprintf(fp, "tan %d: %f{%f}\n", (int)angle, l_tanf(deginrad), tanf(deginrad));
+	fprintf(fp, "sqrt %d: %f{%f}\n", (int)angle, l_sqrtf(deginrad), sqrtf(deginrad));
+	fprintf(fp, "fabs %f: %f{%f}\n", -angle * M_PI, l_absf(-angle * M_PI), fabsf(-angle * M_PI));
 
 	fclose(fp);
 }
@@ -46,14 +46,14 @@ int test_random_numbers()
 	FILE *fp = fopen("debug.txt", "w");
 	if (!fp) return;
 
-	lsrand(GetTickCount());
+	l_srand(GetTickCount());
 	fprintf(fp, "lrand()\n");
 	for (int i = 0; i < 10; i++)
-		fprintf(fp, "%d\n", lrand());
+		fprintf(fp, "%d\n", l_rand());
 
 	fprintf(fp, "\nfrand(0.0f, 10.0f)\n");
 	for (int i = 0; i < 10; i++)
-		fprintf(fp, "%f\n", lrandf(0, 10));
+		fprintf(fp, "%f\n", l_randf(0, 10));
 
 	fclose(fp);
 }

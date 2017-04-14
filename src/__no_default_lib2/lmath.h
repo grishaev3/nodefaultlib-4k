@@ -14,30 +14,30 @@
 
 static unsigned long int next = 1;
 
-int lrand(void) // RAND_MAX assumed to be 32767
+int l_rand(void) // RAND_MAX assumed to be 32767
 {
 	next = next * 1103515245 + 12345;
 	return (unsigned int)(next / 65536) % 32768;
 }
 
-void lsrand(unsigned int seed)
+void l_srand(unsigned int seed)
 {
 	next = seed;
 }
 
-int lrandi(int min, int max)
+int l_randi(int min, int max)
 {
-	return (lrand() % (max - min)) + min;
+	return (l_rand() % (max - min)) + min;
 }
 
-float lrandf(float a, float b) {
-	float random = ((float)lrand()) / (float)RAND_MAX;
+float l_randf(float a, float b) {
+	float random = ((float)l_rand()) / (float)RAND_MAX;
 	float diff = b - a;
 	float r = random * diff;
 	return a + r;
 }
 
-void lsincosf(double angle, float* psin, float* pcos)
+void l_sincosf(double angle, float* psin, float* pcos)
 {
 	double tsin, tcos;
 
@@ -53,7 +53,7 @@ void lsincosf(double angle, float* psin, float* pcos)
 	*pcos = (float)tcos;
 }
 
-float ltanf(double angle)
+float l_tanf(double angle)
 {
 	double ttan, one;
 
@@ -68,7 +68,7 @@ float ltanf(double angle)
 	return (float)ttan;
 }
 
-float lsqrtf(double value)
+float l_sqrtf(double value)
 {
 	double result;
 
@@ -82,7 +82,7 @@ float lsqrtf(double value)
 	return (float)result;
 }
 
-float labsf(double value)
+float l_absf(double value)
 {
 	return (value < 0) ? -value : value;
 }

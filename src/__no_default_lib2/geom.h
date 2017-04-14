@@ -37,7 +37,7 @@ void generate_ring(float z, float radius, float jit,
 	
 	for (uint32_t i = 0; i < pRing->blockCount; i++) {
 		const float angle_in_rad = angle*Deg2Rad;
-		lsincosf(angle_in_rad, &s, &c);
+		l_sincosf(angle_in_rad, &s, &c);
 		vec3_t offset = (vec3_t) { c * radius, s * radius, z };
 
 		pRing->pos[elementIndex] = get_transform(
@@ -54,7 +54,7 @@ void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ri
 {
 	float currentRadius = radius;
 	for (uint32_t windingIndex = 0; windingIndex < pRing->windingCount; windingIndex++) {
-		float jit = lrandf(-10.0f*windingIndex, 10.0f*windingIndex);
+		float jit = l_randf(-10.0f*windingIndex, 10.0f*windingIndex);
 		generate_ring(-z, currentRadius, jit, windingIndex, pRing);
 		currentRadius += radius*raduisCoeff;
 	}
