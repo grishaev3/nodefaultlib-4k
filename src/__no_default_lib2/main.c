@@ -3,7 +3,7 @@
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
 #define IS_MOVE
-#define IS_SHOW_SIZE_CAPTION	//+~250b
+//#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
 
 #define LIT_SHD	0
@@ -263,9 +263,9 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	if (!RegisterClass(&wc))
 		return 1;
 
-	char buf[MAX_PATH];
-	buf[0] = '_'; buf[1] = '_';
+	char buf[16] = { 0 };
 #ifdef IS_SHOW_SIZE_CAPTION
+	buf[0] = '_'; buf[1] = '_';
 	l_itoa(get_exe_size(), &buf[2], 10);
 	strcat(buf + strlen(buf), "b");
 #endif // IS_SHOW_SIZE_CAPTION
