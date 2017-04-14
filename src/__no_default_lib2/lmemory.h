@@ -4,40 +4,40 @@
 
 HANDLE g_hHeap;
 
-void *l_memset(void *s, int c, size_t n)
+LPVOID __fastcall l_memset(LPVOID pvMem, int c, size_t dwBytes)
 {
-	unsigned char* p = s;
-	while (n--)
-		*p++ = (unsigned char)c;
-	return s;
+	BYTE* p = pvMem;
+	while (dwBytes--)
+		*p++ = (BYTE)c;
+	return pvMem;
 }
 
-inline void l_zero_mem(LPVOID pvMem, size_t dwBytes)
+inline void __fastcall l_zeromem(LPVOID pvMem, size_t dwBytes)
 {
 	l_memset(pvMem, 0x0, dwBytes);
 }
 
-void l_heap_create(size_t dwInitialSize, size_t dwHaximumSize)
+void __fastcall l_heap_create(size_t dwInitialSize, size_t dwHaximumSize)
 {
 	g_hHeap = HeapCreate(0, dwInitialSize, dwHaximumSize);
 }
 
-LPVOID l_malloc(size_t dwBytes)
+LPVOID __fastcall l_malloc(size_t dwBytes)
 {
 	return HeapAlloc(g_hHeap, HEAP_ZERO_MEMORY, dwBytes);
 }
 
-LPVOID l_realloc(LPVOID pvMem, size_t dwBytes)
+LPVOID __fastcall l_realloc(LPVOID pvMem, size_t dwBytes)
 {
 	return HeapReAlloc(g_hHeap, HEAP_ZERO_MEMORY, pvMem, dwBytes);
 }
 
-BOOL l_free(LPVOID pvMem)
+BOOL __fastcall l_free(LPVOID pvMem)
 {
 	return HeapFree(g_hHeap, 0, pvMem);
 }
 
-BOOL l_heap_destroy()
+BOOL __fastcall l_heap_destroy()
 {
 	return HeapDestroy(g_hHeap);
 }
