@@ -113,12 +113,12 @@ bool init_gl_ext()
 	return g_isExtensionInit = true;
 }
 
-void lUniform4fv(const char *param, GLfloat *x, uint32_t prgIndex)
+void l_Uniform4fv(const char *param, GLfloat *x, uint32_t prgIndex)
 {
 	GLint loc = glGetUniformLocation(prgIndex, param);
 	glUniform4fv(loc, 1, x);
 }
-void lUniformMatrix4fv(const char *param, GLfloat *x, uint32_t prgIndex)
+void l_UniformMatrix4fv(const char *param, GLfloat *x, uint32_t prgIndex)
 {
 	GLint loc = glGetUniformLocation(g_shadingProgram[prgIndex], param);
 	glUniformMatrix4fv(loc, 1, false, x);

@@ -1,10 +1,6 @@
 #pragma once
 
-
-
-
 #ifdef _DEBUG
-
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

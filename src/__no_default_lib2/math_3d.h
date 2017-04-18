@@ -179,17 +179,16 @@ mat4_t m4_perspective(float vertical_field_of_view_in_deg, float aspect_ratio, f
 mat4_t m4_look_at(vec3_t from, vec3_t to, vec3_t up);
 
 mat4_t m4_transpose(mat4_t matrix);
-mat4_t m4_mul(mat4_t a, mat4_t b);
 mat4_t m4_invert_affine(mat4_t matrix);
 vec3_t m4_mul_pos(mat4_t matrix, vec3_t position);
 vec3_t m4_mul_dir(mat4_t matrix, vec3_t direction);
+
+void m4_mul(mat4_t *r, const mat4_t  *a, const mat4_t *b);
 
 //void   m4_print(mat4_t matrix);
 //void   m4_printp(mat4_t matrix, int width, int precision);
 //void   m4_fprint(FILE* stream, mat4_t matrix);
 //void   m4_fprintp(FILE* stream, mat4_t matrix, int width, int precision);
-
-
 
 //
 // 3D vector functions header implementation
@@ -321,25 +320,24 @@ mat4_t m4_rotation_z(float angle_in_rad) {
 * But note that the article use the first index for rows and the second for
 * columns.
 */
-mat4_t m4_mul(mat4_t a, mat4_t b) {
-	mat4_t result;
+void m4_mul(mat4_t *result, const mat4_t *a, const mat4_t *b) {
 
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			float sum = 0;
 			for (int k = 0; k < 4; k++) {
-				sum += a.m[k][j] * b.m[i][k];
+				sum += a->m[k][j] * b->m[i][k];
 			}
-			result.m[i][j] = sum;
+			result->m[i][j] = sum;
 		}
 	}
-
-	return result;
 }
 
-mat4_t get_transform(mat4_t translate, mat4_t rotate, mat4_t scale)
+mat4_t get_transform(mat4_t *result, const mat4_t *translation,
+	const mat4_t *rotation, const mat4_t *scaling)
 {
-	return m4_mul(m4_mul(translate, rotate), scale);
+	m4_mul(result, translation, rotation);
+	m4_mul(result, result, scaling);
 }
 
 #endif // MATH_3D_HEADER

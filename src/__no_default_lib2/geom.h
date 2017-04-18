@@ -34,16 +34,18 @@ void generate_ring(float z, float radius, float jit,
 
 	float angle = 0.0f + jit;
 	float step = 360.0f / pRing->blockCount;
-	
+
+	mat4_t result;
 	for (uint32_t i = 0; i < pRing->blockCount; i++) {
 		const float angle_in_rad = angle*Deg2Rad;
 		l_sincosf(angle_in_rad, &s, &c);
-		vec3_t offset = (vec3_t) { c * radius, s * radius, z };
 
-		pRing->pos[elementIndex] = get_transform(
-			m4_translation(offset),
-			m4_rotation_z((angle - 90.0f) * Deg2Rad),
-			m4_scaling(scale));
+		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, z });
+		mat4_t rotation = m4_rotation_z((angle - 90.0f) * Deg2Rad);
+		mat4_t scalem = m4_scaling(scale);
+
+		get_transform(&result, &translation, &rotation,	&scalem);
+		pRing->pos[elementIndex] = result;
 
 		elementIndex += 1;
 		angle += step;
@@ -55,7 +57,7 @@ void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ri
 	float currentRadius = radius;
 	for (uint32_t windingIndex = 0; windingIndex < pRing->windingCount; windingIndex++) {
 		float jit = l_randf(-10.0f*windingIndex, 10.0f*windingIndex);
-		generate_ring(-z, currentRadius, jit, windingIndex, pRing);
+		generate_ring(z, currentRadius, jit, windingIndex, pRing);
 		currentRadius += radius*raduisCoeff;
 	}
 }
@@ -71,7 +73,7 @@ float move_ring(float deltaZ, geometry_ring *pRing)
 void draw_ring(const geometry_ring *ring, uint32_t prgIndex)
 {
 	for (uint32_t i = 0; i < ring->posLength; i++) {
-		lUniformMatrix4fv("u_world", &ring->pos[i], prgIndex);
+		l_UniformMatrix4fv("u_world", &ring->pos[i], prgIndex);
 		l_draw_plane();
 	}
 }

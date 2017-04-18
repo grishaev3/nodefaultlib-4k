@@ -5,7 +5,7 @@
 #define _1MB	(1024*1024)
 
 #define IS_MOVE
-//#define IS_AA
+#define IS_AA
 #define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
 
@@ -74,7 +74,7 @@ geometry_ring *g_rings;
 bool on_init()
 {
 	l_srand(GetTickCount());
-	g_from = vec3(0.0, 0.0, 1.0f);
+	// TODO: -(right) +(left)
 	g_up = vec3(0.0f, 1.0f, 0.0f);
 
 	if (!init_gl_ext())
@@ -124,7 +124,7 @@ bool on_init()
 		pRing->blockCount = g_maxBlockCount;
 		pRing->windingCount = g_maxWindingCount;
 		alloc_ring(pRing);
-		generate_ring_winding((float)i, g_radius, g_radiusCoeff, pRing);
+		generate_ring_winding(-(float)i, g_radius, g_radiusCoeff, pRing);
 	}
 
 	glFrontFace(GL_CCW);
@@ -157,25 +157,30 @@ void on_render(uint32_t frameTime)
 	float startFrame = 0;
 
 	// camera fly calculate
-	g_cameraAngle += g_deltaTime * 10; // ~0.15
-	float s, c, radius = 0.5f;
-	l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
-	g_to.x = c*radius;	g_to.y = s*radius;
+	//g_cameraAngle += g_deltaTime * 10; // ~0.15
+	//float s, c, radius = 0.5f;
+	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
+	//g_to.x = c*radius;	g_to.y = s*radius;
+
+	g_from = vec3(-2.0, 0.0, 0.0f);
+	g_to.x = -3.0; g_to.y = 0; g_to.z = -1.0f;
 	g_view = m4_look_at(g_from, g_to, g_up);
 
 
 #ifdef IS_MOVE	// move camera
-	float deltaCameraZ = 0.05f;
+	const float deltaCameraZ = 0.05f;
+	const float limitDestrioyZ = 1.2f;
+
 	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
-		if (move_ring(deltaCameraZ, pRing) > 1.2f) {
+		if (move_ring(deltaCameraZ, pRing) > limitDestrioyZ) {
 
 			free_ring(pRing);
 			pRing->blockCount = g_maxBlockCount;
 			pRing->windingCount = g_maxWindingCount;
 			alloc_ring(pRing);
 
-			generate_ring_winding((float)g_segCount, g_radius, g_radiusCoeff, pRing);
+			generate_ring_winding(-(float)g_segCount, g_radius, g_radiusCoeff, pRing);
 		}
 	}
 #endif // IS_MOVE
@@ -190,17 +195,17 @@ void on_render(uint32_t frameTime)
 	/* main draw */
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glUseProgram(g_shadingProgram[WRF_SHD]);
-	lUniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
-	lUniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
+	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
+	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], WRF_SHD);
 
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glUseProgram(g_shadingProgram[LIT_SHD]);
-	lUniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
-	lUniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
+	l_UniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
+	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
 	float lightPos[4] = { 0, 1, -1, 0 };
-	lUniform4fv("u_LightPos", lightPos, LIT_SHD);
+	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
 
