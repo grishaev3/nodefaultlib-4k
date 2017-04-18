@@ -90,6 +90,7 @@ v1.0  2016-02-15  Initial release
 
 typedef struct { float x, y, z; } vec3_t;
 static inline vec3_t vec3(float x, float y, float z) { return (vec3_t) { x, y, z }; }
+static inline vec3_t vec3fv(float *v) { return (vec3_t) { v[0], v[1], v[2] }; }
 
 static vec3_t v3_add(vec3_t a, vec3_t b) { return (vec3_t) { a.x + b.x, a.y + b.y, a.z + b.z }; }
 static vec3_t v3_adds(vec3_t a, float s) { return (vec3_t) { a.x + s, a.y + s, a.z + s }; }

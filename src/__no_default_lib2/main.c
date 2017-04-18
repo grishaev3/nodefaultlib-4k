@@ -66,10 +66,25 @@ mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
 float g_radius = 2.6f;
 float g_radiusCoeff = 0.05f;
-uint32_t g_segCount = 7;		// кол-во блоков в окружности
-uint32_t g_maxBlockCount = 18;	// длинна тунеля
-uint32_t g_maxWindingCount = 8;	// кол-во слоёв (мотков)
+const uint32_t g_segCount = 7;		// кол-во блоков в окружности
+uint32_t g_maxBlockCount = 18;		// длинна тунеля
+uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
 geometry_ring *g_rings;
+
+uint32_t g_cameraIndex = 0.0f, g_cameraTimer = 0;
+
+float g_cvp[] = {
+	-0.1f, -0.0f, -0.0f, -1.0f, -0.0f, -0.0f,
+	+0.1f, -0.0f, -0.0f, +1.0f, -0.0f, -0.0f,
+
+	-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f,
+	-0.0f, -0.0f, -7.0f, -0.0f, -0.0f, +1.0f,
+
+	-0.0f, +1.0f, -0.0f, -0.0f, -1.0f, -3.0f,
+	-0.0f, -1.0f, -0.0f, -0.0f, +1.0f, -3.0f,
+
+	-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
+};
 
 bool on_init()
 {
@@ -141,7 +156,7 @@ void on_resize(int maxX, int maxY)
 {
 	g_maxX = maxX;
 	g_maxY = maxY;
-	glViewport(0, 0, maxX, maxY);
+	glViewport(0.0f, 0.0f, maxX, maxY);
 	g_projection = m4_perspective(90.0f, (float)maxX
 		/ maxY, 0.2f, 20.0f);
 
@@ -151,25 +166,34 @@ void on_resize(int maxX, int maxY)
 #endif // IS_AA
 }
 
+void on_set_camera(uint32_t frameTime)
+{
+	//g_cameraAngle += g_deltaTime * 10; // ~0.15
+	//float s, c, radius = 0.5f;
+	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
+	//g_to.x = c*radius;	g_to.y = s*radius;
+
+	if ((g_cameraTimer += frameTime) > 3000) {
+		g_cameraIndex = l_randi(0, 7);
+		g_cameraTimer = 0;
+	}
+
+	g_from = vec3fv(&g_cvp[g_cameraIndex * 6]);
+	g_to = vec3fv(&g_cvp[g_cameraIndex * 6] + 3);
+	g_view = m4_look_at(g_from, g_to, g_up);
+}
+
 void on_render(uint32_t frameTime)
 {
 	//float startFrame = glutGet(GLUT_ELAPSED_TIME);
 	float startFrame = 0;
 
 	// camera fly calculate
-	//g_cameraAngle += g_deltaTime * 10; // ~0.15
-	//float s, c, radius = 0.5f;
-	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
-	//g_to.x = c*radius;	g_to.y = s*radius;
-
-	g_from = vec3(-2.0, 0.0, 0.0f);
-	g_to.x = -3.0; g_to.y = 0; g_to.z = -1.0f;
-	g_view = m4_look_at(g_from, g_to, g_up);
-
+	on_set_camera(frameTime);
 
 #ifdef IS_MOVE	// move camera
 	const float deltaCameraZ = 0.05f;
-	const float limitDestrioyZ = 1.2f;
+	const float limitDestrioyZ = g_segCount;
 
 	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
@@ -204,7 +228,7 @@ void on_render(uint32_t frameTime)
 	glUseProgram(g_shadingProgram[LIT_SHD]);
 	l_UniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
 	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
-	float lightPos[4] = { 0, 1, -1, 0 };
+	float lightPos[4] = { 0.0f, 1, -1, 0 };
 	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
@@ -213,7 +237,7 @@ void on_render(uint32_t frameTime)
 	// 2. Now blit multisampled buffer(s) to default framebuffers
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_framebuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, g_maxX, g_maxY, 0, 0,
+	glBlitFramebuffer(0.0f, 0.0f, g_maxX, g_maxY, 0.0f, 0.0f,
 		g_maxX, g_maxY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 #endif // IS_AA
 
@@ -282,7 +306,7 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	l_itoa(get_exe_size(), &szCaption[2], 10);
 	strcat(szCaption + strlen(szCaption), "b");
 #endif // IS_SHOW_SIZE_CAPTION
-	g_hWnd = CreateWindow(wc.lpszClassName,
+	g_hWnd = CreateWindowA(wc.lpszClassName,
 		szCaption,
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		0, 0, g_maxX, g_maxY, 0, 0, hInstance, NULL);
@@ -299,7 +323,7 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	const uint32_t SKIP_TICKS = (1000 / g_frames_per_second);
 
 	while (1) {
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+		while (PeekMessage(&msg, NULL, 0.0f, 0.0f, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
