@@ -2,8 +2,6 @@
 //#pragma comment(linker, "/MERGE:.rdata=.text")
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
-#define _1MB	(1024*1024)
-
 #define IS_MOVE
 #define IS_AA
 #define IS_SHOW_SIZE_CAPTION	//+~250b
@@ -71,21 +69,6 @@ uint32_t g_maxBlockCount = 18;		// длинна тунеля
 uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
 geometry_ring *g_rings;
 
-uint32_t g_cameraIndex = 0.0f, g_cameraTimer = 0;
-
-float g_cvp[] = {
-	-0.1f, -0.0f, -0.0f, -1.0f, -0.0f, -0.0f,
-	+0.1f, -0.0f, -0.0f, +1.0f, -0.0f, -0.0f,
-
-	-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f,
-	-0.0f, -0.0f, -7.0f, -0.0f, -0.0f, +1.0f,
-
-	-0.0f, +1.0f, -0.0f, -0.0f, -1.0f, -3.0f,
-	-0.0f, -1.0f, -0.0f, -0.0f, +1.0f, -3.0f,
-
-	-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
-};
-
 bool on_init()
 {
 	l_srand(GetTickCount());
@@ -125,7 +108,6 @@ bool on_init()
 	create_shaders(v_hlsl, f_hlsl, LIT_SHD);
 	create_shaders(wire_v_hlsl, wire_f_hlsl, WRF_SHD);
 #endif
-
 
 	// memory usage
 	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
@@ -168,18 +150,35 @@ void on_resize(int maxX, int maxY)
 
 void on_set_camera(uint32_t frameTime)
 {
+	const int numOfParams = 6;
+	const int numOfViews = 8;
+	static float g_cvp[] = {
+		-0.1f, -0.0f, -0.0f, -1.0f, -0.0f, -0.0f,
+		+0.1f, -0.0f, -0.0f, +1.0f, -0.0f, -0.0f,
+
+		-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f,
+		-0.0f, -0.0f, -7.0f, -0.0f, -0.0f, +1.0f,
+
+		-0.0f, +1.0f, -0.0f, -0.0f, -1.0f, -3.0f,
+		-0.0f, -1.0f, -0.0f, -0.0f, +1.0f, -3.0f,
+
+		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
+		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
+	};
+	static uint32_t cameraIndex = 0, cameraTimer = 0;
+
 	//g_cameraAngle += g_deltaTime * 10; // ~0.15
 	//float s, c, radius = 0.5f;
 	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
 	//g_to.x = c*radius;	g_to.y = s*radius;
 
-	if ((g_cameraTimer += frameTime) > 3000) {
-		g_cameraIndex = l_randi(0, 7);
-		g_cameraTimer = 0;
+	if ((cameraTimer += frameTime) > 3750) {
+		cameraIndex = l_randi(0, numOfViews);
+		cameraTimer = 0;
 	}
 
-	g_from = vec3fv(&g_cvp[g_cameraIndex * 6]);
-	g_to = vec3fv(&g_cvp[g_cameraIndex * 6] + 3);
+	g_from = vec3fv(&g_cvp[cameraIndex * numOfParams]);
+	g_to = vec3fv(&g_cvp[cameraIndex * numOfParams] + numOfParams / 2);
 	g_view = m4_look_at(g_from, g_to, g_up);
 }
 
@@ -193,7 +192,7 @@ void on_render(uint32_t frameTime)
 
 #ifdef IS_MOVE	// move camera
 	const float deltaCameraZ = 0.05f;
-	const float limitDestrioyZ = g_segCount;
+	const float limitDestrioyZ = g_maxBlockCount / 3;
 
 	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
@@ -280,7 +279,8 @@ int on_exit(void)
 	wglDeleteContext(g_hRC);
 	ReleaseDC(g_hWnd, g_hDC);
 	g_hDC = NULL;
-	return 0;
+
+	return E_OK();
 }
 
 #ifdef _DEBUG
