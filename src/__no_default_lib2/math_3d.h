@@ -219,6 +219,34 @@ static float v3_angle_between(vec3_t a, vec3_t b) {
 	return acosf(v3_dot(a, b) / (v3_length(a) * v3_length(b)));
 }
 
+/* https://github.com/SneakyBrian/Catmull-Rom-Sample/blob/master/Catmull%E2%80%93Rom-Sample/CatmullRomSpline.cs */
+static vec3_t point_on_curve(
+	vec3_t *ret,
+	vec3_t *p0,
+	vec3_t *p1,
+	vec3_t *p2,
+	vec3_t *p3, 
+	float t)
+{
+	float t2 = t * t;
+	float t3 = t2 * t;
+
+	ret->x = 0.5f * ((2.0f * p1->x) +
+		(-p0->x + p2->x) * t +
+		(2.0f * p0->x - 5.0f * p1->x + 4 * p2->x - p3->x) * t2 +
+		(-p0->x + 3.0f * p1->x - 3.0f * p2->x + p3->x) * t3);
+
+	ret->y = 0.5f * ((2.0f * p1->y) +
+		(-p0->y + p2->y) * t +
+		(2.0f * p0->y - 5.0f * p1->y + 4 * p2->y - p3->y) * t2 +
+		(-p0->y + 3.0f * p1->y - 3.0f * p2->y + p3->y) * t3);
+
+	ret->z = 0.5f * ((2.0f * p1->z) +
+		(-p0->z + p2->z) * t +
+		(2.0f * p0->z - 5.0f * p1->z + 4 * p2->z - p3->z) * t2 +
+		(-p0->z + 3.0f * p1->z - 3.0f * p2->z + p3->z) * t3);
+}
+
 
 //
 // Matrix functions header implementation
