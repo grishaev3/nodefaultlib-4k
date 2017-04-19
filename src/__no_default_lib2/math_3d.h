@@ -92,20 +92,20 @@ typedef struct { float x, y, z; } vec3_t;
 static inline vec3_t vec3(float x, float y, float z) { return (vec3_t) { x, y, z }; }
 static inline vec3_t vec3fv(float *v) { return (vec3_t) { v[0], v[1], v[2] }; }
 
-static vec3_t v3_add(vec3_t a, vec3_t b) { return (vec3_t) { a.x + b.x, a.y + b.y, a.z + b.z }; }
-static vec3_t v3_adds(vec3_t a, float s) { return (vec3_t) { a.x + s, a.y + s, a.z + s }; }
+//static vec3_t v3_add(vec3_t a, vec3_t b) { return (vec3_t) { a.x + b.x, a.y + b.y, a.z + b.z }; }
+//static vec3_t v3_adds(vec3_t a, float s) { return (vec3_t) { a.x + s, a.y + s, a.z + s }; }
 static vec3_t v3_sub(vec3_t a, vec3_t b) { return (vec3_t) { a.x - b.x, a.y - b.y, a.z - b.z }; }
-static vec3_t v3_subs(vec3_t a, float s) { return (vec3_t) { a.x - s, a.y - s, a.z - s }; }
+//static vec3_t v3_subs(vec3_t a, float s) { return (vec3_t) { a.x - s, a.y - s, a.z - s }; }
 static vec3_t v3_mul(vec3_t a, vec3_t b) { return (vec3_t) { a.x * b.x, a.y * b.y, a.z * b.z }; }
 static vec3_t v3_muls(vec3_t a, float s) { return (vec3_t) { a.x * s, a.y * s, a.z * s }; }
-static vec3_t v3_div(vec3_t a, vec3_t b) { return (vec3_t) { a.x / b.x, a.y / b.y, a.z / b.z }; }
-static vec3_t v3_divs(vec3_t a, float s) { return (vec3_t) { a.x / s, a.y / s, a.z / s }; }
+//static vec3_t v3_div(vec3_t a, vec3_t b) { return (vec3_t) { a.x / b.x, a.y / b.y, a.z / b.z }; }
+//static vec3_t v3_divs(vec3_t a, float s) { return (vec3_t) { a.x / s, a.y / s, a.z / s }; }
 static float  v3_length(vec3_t v) { return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z); }
-static vec3_t v3_norm(vec3_t v);
+//static vec3_t v3_norm(vec3_t v);
 static float  v3_dot(vec3_t a, vec3_t b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
-static vec3_t v3_proj(vec3_t v, vec3_t onto);
-static vec3_t v3_cross(vec3_t a, vec3_t b);
-static float  v3_angle_between(vec3_t a, vec3_t b);
+//static vec3_t v3_proj(vec3_t v, vec3_t onto);
+//static vec3_t v3_cross(vec3_t a, vec3_t b);
+//static float  v3_angle_between(vec3_t a, vec3_t b);
 
 
 //
@@ -195,6 +195,7 @@ void m4_mul(mat4_t *r, const mat4_t  *a, const mat4_t *b);
 // 3D vector functions header implementation
 //
 
+
 static vec3_t v3_norm(vec3_t v) {
 	float len = v3_length(v);
 	if (len > 0)
@@ -202,6 +203,7 @@ static vec3_t v3_norm(vec3_t v) {
 	else
 		return (vec3_t) { 0, 0, 0 };
 }
+
 
 static vec3_t v3_proj(vec3_t v, vec3_t onto) {
 	return v3_muls(onto, v3_dot(v, onto) / v3_dot(onto, onto));
@@ -214,6 +216,7 @@ static vec3_t v3_cross(vec3_t a, vec3_t b) {
 			a.x * b.y - a.y * b.x
 	};
 }
+
 
 static float v3_angle_between(vec3_t a, vec3_t b) {
 	return acosf(v3_dot(a, b) / (v3_length(a) * v3_length(b)));
@@ -284,6 +287,7 @@ mat4_t m4_translation(vec3_t offset) {
 	);
 }
 
+
 mat4_t m4_scaling(vec3_t scale) {
 	float x = scale.x, y = scale.y, z = scale.z;
 	return mat4(
@@ -293,7 +297,7 @@ mat4_t m4_scaling(vec3_t scale) {
 		0, 0, 0, 1
 	);
 }
-
+/*
 mat4_t m4_rotation_x(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
@@ -317,6 +321,7 @@ mat4_t m4_rotation_y(float angle_in_rad) {
 		0, 0, 0, 1
 	);
 }
+*/
 
 mat4_t m4_rotation_z(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);

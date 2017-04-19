@@ -3,8 +3,8 @@
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
 #define IS_MOVE
-#define IS_AA
-#define IS_SHOW_SIZE_CAPTION	//+~250b
+//#define IS_AA
+//#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
 
 #define LIT_SHD	0
@@ -63,7 +63,7 @@ vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
 float g_radius = 2.6f;
-float g_radiusCoeff = 0.05f;
+float g_radiusCoeff = 0.04f;
 const uint32_t g_segCount = 7;		// кол-во блоков в окружности
 uint32_t g_maxBlockCount = 18;		// длинна тунеля
 uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
@@ -127,9 +127,11 @@ bool on_init()
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
-
-	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
+
+#ifdef IS_AA
+	glEnable(GL_MULTISAMPLE);
+#endif // IS_AA
 
 	return true;
 }
@@ -151,19 +153,31 @@ void on_resize(int maxX, int maxY)
 void on_set_camera(uint32_t frameTime)
 {
 	const int numOfParams = 6;
-	const int numOfViews = 8;
+	const int numOfViews = 16;
 	static float g_cvp[] = {
-		-0.1f, -0.0f, -0.0f, -1.0f, -0.0f, -0.0f,
-		+0.1f, -0.0f, -0.0f, +1.0f, -0.0f, -0.0f,
+		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
+		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
+
+		-0.0f, +4.2f, -0.0f, -0.0f, +4.2f, -1.0f,
+		-0.0f, -4.2f, -0.0f, -0.0f, -4.2f, +1.0f,
 
 		-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f,
 		-0.0f, -0.0f, -7.0f, -0.0f, -0.0f, +1.0f,
 
 		-0.0f, +1.0f, -0.0f, -0.0f, -1.0f, -3.0f,
-		-0.0f, -1.0f, -0.0f, -0.0f, +1.0f, -3.0f,
+		-0.0f, -1.55f, -0.0f, -0.0f, +1.0f, -1.25f,
 
-		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
-		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
+		-0.1f, -0.0f, -0.0f, -1.0f, -0.0f, -1.0f,
+		+0.1f, -0.0f, -0.0f, +1.0f, -0.0f, +1.0f,
+
+		+4.2f, -0.0f, -0.0f, +0.0f, -0.0f, -1.0f,
+		-4.2f, -0.0f, -0.0f, +0.0f, -0.0f, -1.0f,
+
+		-4.2f, -0.0f, -0.0f, -4.2f, -0.0f, -1.0f,
+		+4.2f, -0.0f, -0.0f, +4.2f, -0.0f, -1.0f,
+
+		-0.0f, -4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
+		-0.0f, +4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 	};
 	static uint32_t cameraIndex = 0, cameraTimer = 0;
 
@@ -223,6 +237,7 @@ void on_render(uint32_t frameTime)
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], WRF_SHD);
 
+	// ~34b
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glUseProgram(g_shadingProgram[LIT_SHD]);
 	l_UniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
@@ -231,6 +246,7 @@ void on_render(uint32_t frameTime)
 	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
+
 
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers
@@ -280,7 +296,7 @@ int on_exit(void)
 	ReleaseDC(g_hWnd, g_hDC);
 	g_hDC = NULL;
 
-	return E_OK();
+	return S_OK;
 }
 
 #ifdef _DEBUG
