@@ -37,7 +37,7 @@ void generate_ring(float z, float radius, float jit,
 
 	mat4_t result;
 	for (uint32_t i = 0; i < pRing->blockCount; i++) {
-		const float angle_in_rad = angle*Deg2Rad;
+		float angle_in_rad = angle*Deg2Rad;
 		l_sincosf(angle_in_rad, &s, &c);
 
 		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, z });

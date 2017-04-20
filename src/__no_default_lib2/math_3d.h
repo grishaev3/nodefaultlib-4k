@@ -297,7 +297,7 @@ mat4_t m4_scaling(vec3_t scale) {
 		0, 0, 0, 1
 	);
 }
-/*
+
 mat4_t m4_rotation_x(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
@@ -321,7 +321,6 @@ mat4_t m4_rotation_y(float angle_in_rad) {
 		0, 0, 0, 1
 	);
 }
-*/
 
 mat4_t m4_rotation_z(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);

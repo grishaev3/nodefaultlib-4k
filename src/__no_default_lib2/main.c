@@ -237,7 +237,7 @@ void on_render(uint32_t frameTime)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/* main draw */
+	/* main draw 
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glUseProgram(g_shadingProgram[WRF_SHD]);
 	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
@@ -254,6 +254,39 @@ void on_render(uint32_t frameTime)
 	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
+		*/
+
+
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glUseProgram(g_shadingProgram[LIT_SHD]);
+	l_UniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
+	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
+	float lightPos[4] = { 0.0f, 1, -1, 0 };
+	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
+	mat4_t result;
+	float angle = 0.0f;
+	float step = 360.0f / 12;
+	float radius = 2.6f;
+	float s, c;
+	const vec3_t scale = (vec3_t) { 0.65f, 0.125f, 1.0f };
+	for (uint32_t i = 0; i < 12; i++) {
+		float angle_in_rad = angle*Deg2Rad;
+		l_sincosf(angle_in_rad, &s, &c);
+
+		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, -2.0f });
+		mat4_t rotation = m4_rotation_y(-90* Deg2Rad);
+		mat4_t scalem = m4_scaling(scale);
+		//mat4_t rotation = m4_identity();
+
+		get_transform(&result, &translation, &rotation, &scalem);
+		l_UniformMatrix4fv("u_world", &result, LIT_SHD);
+		l_draw_plane();
+
+		angle += step;
+	}
+
+
+
 
 
 #ifdef IS_AA
