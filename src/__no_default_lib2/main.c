@@ -191,7 +191,7 @@ void on_set_camera(uint32_t frameTime)
 #else
 	const int numOfViews = 1;
 	static float g_cvp[] = {
-		-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f
+		-0.0f, +0.0f, -0.0f, -0.0f, -0.0f, -4.5f
 	};
 #endif
 	//g_cameraAngle += g_deltaTime * 10; // ~0.15
@@ -257,26 +257,25 @@ void on_render(uint32_t frameTime)
 		*/
 
 
-	glPolygonMode(GL_FRONT, GL_FILL);
-	glUseProgram(g_shadingProgram[LIT_SHD]);
-	l_UniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
-	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
+	glPolygonMode(GL_FRONT, GL_LINE);
+	glUseProgram(g_shadingProgram[WRF_SHD]);
+	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
+	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
 	float lightPos[4] = { 0.0f, 1, -1, 0 };
-	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
+	l_Uniform4fv("u_LightPos", lightPos, WRF_SHD);
 	mat4_t result;
 	float angle = 0.0f;
 	float step = 360.0f / 12;
 	float radius = 2.6f;
 	float s, c;
-	const vec3_t scale = (vec3_t) { 0.65f, 0.125f, 1.0f };
+	const vec3_t scale = (vec3_t) { 0.125f, 1.2f, 0.2f };
 	for (uint32_t i = 0; i < 12; i++) {
 		float angle_in_rad = angle*Deg2Rad;
 		l_sincosf(angle_in_rad, &s, &c);
 
-		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, -2.0f });
-		mat4_t rotation = m4_rotation_y(-90* Deg2Rad);
+		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, -2.5f });
+		mat4_t rotation = m4_rotation_z((angle)* Deg2Rad);
 		mat4_t scalem = m4_scaling(scale);
-		//mat4_t rotation = m4_identity();
 
 		get_transform(&result, &translation, &rotation, &scalem);
 		l_UniformMatrix4fv("u_world", &result, LIT_SHD);
@@ -284,10 +283,6 @@ void on_render(uint32_t frameTime)
 
 		angle += step;
 	}
-
-
-
-
 
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers
