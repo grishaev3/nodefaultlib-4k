@@ -2,10 +2,11 @@
 //#pragma comment(linker, "/MERGE:.rdata=.text")
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
-#define IS_MOVE
+//#define IS_MOVE
 //#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
+//#define IS_CAMERA_VIEW_CHANGE
 
 #define LIT_SHD	0
 #define WRF_SHD	1
@@ -153,6 +154,9 @@ void on_resize(int maxX, int maxY)
 void on_set_camera(uint32_t frameTime)
 {
 	const int numOfParams = 6;
+	static uint32_t cameraIndex = 0, cameraTimer = 0;
+
+#ifdef	IS_CAMERA_VIEW_CHANGE
 	const int numOfViews = 16;
 	static float g_cvp[] = {
 		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
@@ -179,17 +183,21 @@ void on_set_camera(uint32_t frameTime)
 		-0.0f, -4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 		-0.0f, +4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 	};
-	static uint32_t cameraIndex = 0, cameraTimer = 0;
-
-	//g_cameraAngle += g_deltaTime * 10; // ~0.15
-	//float s, c, radius = 0.5f;
-	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
-	//g_to.x = c*radius;	g_to.y = s*radius;
 
 	if ((cameraTimer += frameTime) > 3750) {
 		cameraIndex = l_randi(0, numOfViews);
 		cameraTimer = 0;
 	}
+#else
+	const int numOfViews = 1;
+	static float g_cvp[] = {
+		-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f
+	};
+#endif
+	//g_cameraAngle += g_deltaTime * 10; // ~0.15
+	//float s, c, radius = 0.5f;
+	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
+	//g_to.x = c*radius;	g_to.y = s*radius;
 
 	g_from = vec3fv(&g_cvp[cameraIndex * numOfParams]);
 	g_to = vec3fv(&g_cvp[cameraIndex * numOfParams] + numOfParams / 2);
