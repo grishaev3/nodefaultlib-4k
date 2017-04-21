@@ -2,11 +2,11 @@
 //#pragma comment(linker, "/MERGE:.rdata=.text")
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
-//#define IS_MOVE
+#define IS_MOVE
 //#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
-//#define IS_CAMERA_VIEW_CHANGE
+#define IS_CAMERA_VIEW_CHANGE
 
 #define LIT_SHD	0
 #define WRF_SHD	1
@@ -159,27 +159,35 @@ void on_set_camera(uint32_t frameTime)
 #ifdef	IS_CAMERA_VIEW_CHANGE
 	const int numOfViews = 16;
 	static float g_cvp[] = {
+		/* снизу прямо */
 		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
 		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
 
+		/* над/под прямо */
 		-0.0f, +4.2f, -0.0f, -0.0f, +4.2f, -1.0f,
 		-0.0f, -4.2f, -0.0f, -0.0f, -4.2f, +1.0f,
 
+		/* по центру вперёд/назад */
 		-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f,
 		-0.0f, -0.0f, -7.0f, -0.0f, -0.0f, +1.0f,
 
+		/* под углом вниз/вверх */
 		-0.0f, +1.0f, -0.0f, -0.0f, -1.0f, -3.0f,
 		-0.0f, -1.55f, -0.0f, -0.0f, +1.0f, -1.25f,
 
+		/* влево/вправо из центра */
 		-0.1f, -0.0f, -0.0f, -1.0f, -0.0f, -1.0f,
 		+0.1f, -0.0f, -0.0f, +1.0f, -0.0f, +1.0f,
 
+		/* по центру слева/справа со стороны */
 		+4.2f, -0.0f, -0.0f, +0.0f, -0.0f, -1.0f,
 		-4.2f, -0.0f, -0.0f, +0.0f, -0.0f, -1.0f,
 
+		/* по центру слева/справа прямо */
 		-4.2f, -0.0f, -0.0f, -4.2f, -0.0f, -1.0f,
 		+4.2f, -0.0f, -0.0f, +4.2f, -0.0f, -1.0f,
 
+		/* над/под вниз/вверх */
 		-0.0f, -4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 		-0.0f, +4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 	};
