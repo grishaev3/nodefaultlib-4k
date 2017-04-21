@@ -213,6 +213,7 @@ $(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..
     <ClInclude Include="lmemory.h" />
     <ClInclude Include="lext.h" />
     <ClInclude Include="math_3d.h" />
+    <ClInclude Include="s_geom.h" />
     <ClInclude Include="tests.h" />
     <ClInclude Include="vhlsl.h" />
     <ClInclude Include="wire_fhlsl.h" />

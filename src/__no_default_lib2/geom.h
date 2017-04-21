@@ -19,9 +19,9 @@ void alloc_ring(geometry_ring *pRing)
 	pRing->pos = (mat4_t*)l_malloc(pRing->posLength * sizeof(mat4_t));
 }
 
-void free_ring(geometry_ring *ring)
+void free_ring(geometry_ring *pRing)
 {
-	l_free(ring->pos);
+	l_free(pRing->pos);
 }
 
 void generate_ring(float z, float radius, float jit, 
@@ -30,7 +30,7 @@ void generate_ring(float z, float radius, float jit,
 	float s, c;
 	int elementIndex = pRing->blockCount*windingIndex;
 
-	const vec3_t scale = (vec3_t) { 0.65f, 0.125f, 1.0f };
+	const vec3_t scale = (vec3_t) { 0.325f, 0.0625f, 0.5f };
 
 	float angle = 0.0f + jit;
 	float step = 360.0f / pRing->blockCount;

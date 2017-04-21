@@ -31,6 +31,7 @@
 #include "math_3d.h"
 #include "lmath.h"
 #include "geom.h"
+#include "s_geom.h"
 #include "lext.h"
 
 #ifdef __cplusplus
@@ -68,7 +69,9 @@ float g_radiusCoeff = 0.04f;
 const uint32_t g_segCount = 7;		// кол-во блоков в окружности
 uint32_t g_maxBlockCount = 18;		// длинна тунеля
 uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
+
 geometry_ring *g_rings;
+geometry_square *g_squares;
 
 bool on_init()
 {
@@ -123,6 +126,10 @@ bool on_init()
 		pRing->windingCount = g_maxWindingCount;
 		alloc_ring(pRing);
 		generate_ring_winding(-(float)i, g_radius, g_radiusCoeff, pRing);
+	}
+
+	g_squares = (geometry_ring*)l_malloc(g_ringsSizeInBytes);
+	for (uint32_t i = 0; i < g_segCount; i++) {
 	}
 
 	glFrontFace(GL_CCW);
@@ -237,13 +244,14 @@ void on_render(uint32_t frameTime)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/* main draw 
+	// main draw
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glUseProgram(g_shadingProgram[WRF_SHD]);
 	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
 	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], WRF_SHD);
+
 
 	// ~34b
 	glPolygonMode(GL_FRONT, GL_FILL);
@@ -254,35 +262,16 @@ void on_render(uint32_t frameTime)
 	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
-		*/
 
 
-	glPolygonMode(GL_FRONT, GL_LINE);
-	glUseProgram(g_shadingProgram[WRF_SHD]);
-	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
-	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
-	float lightPos[4] = { 0.0f, 1, -1, 0 };
-	l_Uniform4fv("u_LightPos", lightPos, WRF_SHD);
-	mat4_t result;
-	float angle = 0.0f;
-	float step = 360.0f / 12;
-	float radius = 2.6f;
-	float s, c;
-	const vec3_t scale = (vec3_t) { 0.125f, 1.2f, 0.2f };
-	for (uint32_t i = 0; i < 12; i++) {
-		float angle_in_rad = angle*Deg2Rad;
-		l_sincosf(angle_in_rad, &s, &c);
 
-		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, -2.5f });
-		mat4_t rotation = m4_rotation_z((angle)* Deg2Rad);
-		mat4_t scalem = m4_scaling(scale);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glUseProgram(g_shadingProgram[LIT_SHD]);
+	l_UniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
+	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
 
-		get_transform(&result, &translation, &rotation, &scalem);
-		l_UniformMatrix4fv("u_world", &result, LIT_SHD);
-		l_draw_plane();
+	
 
-		angle += step;
-	}
 
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers
