@@ -2,11 +2,15 @@
 //#pragma comment(linker, "/MERGE:.rdata=.text")
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
-//#define IS_MOVE
+#define IS_MOVE
 //#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_STATIC_NORMALS
-//#define IS_CAMERA_VIEW_CHANGE
+#define IS_CAMERA_VIEW_CHANGE
+
+// TODO:
+#define Q_LOW
+#define Q_HI
 
 #define LIT_SHD	0
 #define WRF_SHD	1
@@ -67,6 +71,7 @@ mat4_t g_view, g_projection, g_prj_view, g_world_view;
 float g_radius = 2.6f;
 float g_radiusCoeff = 0.04f;
 const uint32_t g_segCount = 7;		// кол-во блоков в окружности
+const uint32_t g_sqSegCount = 18;
 uint32_t g_maxBlockCount = 18;		// длинна тунеля
 uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
 
@@ -113,12 +118,10 @@ bool on_init()
 	create_shaders(wire_v_hlsl, wire_f_hlsl, WRF_SHD);
 #endif
 
-	// memory usage
-	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
-	size_t geomSizeInBytes = (g_maxBlockCount * g_maxWindingCount * sizeof(mat4_t)) * g_segCount;
-
 	/* TODO: dynamic array https://habrahabr.ru/post/324210/ */
-	g_rings = (geometry_ring*)l_malloc(g_ringsSizeInBytes);
+
+	size_t ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
+	g_rings = (geometry_ring*)l_malloc(ringsSizeInBytes);
 
 	for (uint32_t i = 0; i < g_segCount; i++) {
 		geometry_ring *pRing = &g_rings[i];
@@ -128,8 +131,13 @@ bool on_init()
 		generate_ring_winding(-(float)i, g_radius, g_radiusCoeff, pRing);
 	}
 
-	g_squares = (geometry_ring*)l_malloc(g_ringsSizeInBytes);
+	size_t squareSizeInButes = g_segCount * sizeof(geometry_square);
+	g_squares = (geometry_square*)l_malloc(squareSizeInButes);
 	for (uint32_t i = 0; i < g_segCount; i++) {
+		geometry_square *pSquare = &g_squares[i];
+		pSquare->blockCount = g_sqSegCount;
+		alloc_square(pSquare);
+		generate_square(-(float)i, g_radius*1.1375f, pSquare);
 	}
 
 	glFrontFace(GL_CCW);
@@ -224,15 +232,24 @@ void on_render(uint32_t frameTime)
 	const float limitDestrioyZ = g_maxBlockCount / 3;
 
 	for (uint32_t i = 0; i < g_segCount; i++) {
+
 		geometry_ring *pRing = &g_rings[i];
-		if (move_ring(deltaCameraZ, pRing) > limitDestrioyZ) {
+		geometry_square *pSquare = &g_squares[i];
+		float ringPos = move_ring(deltaCameraZ, pRing);
+		float sqPos = move_square(deltaCameraZ, pSquare);
+
+		if (sqPos > limitDestrioyZ) {
 
 			free_ring(pRing);
 			pRing->blockCount = g_maxBlockCount;
 			pRing->windingCount = g_maxWindingCount;
 			alloc_ring(pRing);
-
 			generate_ring_winding(-(float)g_segCount, g_radius, g_radiusCoeff, pRing);
+
+			free_square(pSquare);
+			pSquare->blockCount = g_sqSegCount;
+			alloc_square(pSquare);
+			generate_square(-(float)g_segCount, g_radius * l_randf(1.1375f, 1.275f), pSquare);
 		}
 	}
 #endif // IS_MOVE
@@ -244,15 +261,6 @@ void on_render(uint32_t frameTime)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// main draw
-	glPolygonMode(GL_FRONT, GL_LINE);
-	glUseProgram(g_shadingProgram[WRF_SHD]);
-	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
-	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
-	for (uint32_t i = 0; i < g_segCount; i++)
-		draw_ring(&g_rings[i], WRF_SHD);
-
-
 	// ~34b
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glUseProgram(g_shadingProgram[LIT_SHD]);
@@ -262,16 +270,17 @@ void on_render(uint32_t frameTime)
 	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
 	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_ring(&g_rings[i], LIT_SHD);
+	for (uint32_t i = 0; i < g_segCount; i++)
+		draw_square(&g_squares[i], LIT_SHD);
 
-
-
-	glPolygonMode(GL_FRONT, GL_FILL);
-	glUseProgram(g_shadingProgram[LIT_SHD]);
-	l_UniformMatrix4fv("u_view", &g_view.m, LIT_SHD);
-	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
-
-	
-
+	glPolygonMode(GL_FRONT, GL_LINE);
+	glUseProgram(g_shadingProgram[WRF_SHD]);
+	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
+	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
+	for (uint32_t i = 0; i < g_segCount; i++)
+		draw_ring(&g_rings[i], WRF_SHD);
+	for (uint32_t i = 0; i < g_segCount; i++)
+		draw_square(&g_squares[i], WRF_SHD);
 
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers

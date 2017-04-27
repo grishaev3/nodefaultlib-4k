@@ -64,16 +64,15 @@ void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ri
 
 float move_ring(float deltaZ, geometry_ring *pRing)
 {
-	//ring->pos[i] = m4_mul(m4_translation((vec3_t) { 0.0f, 0.0f, deltaZ }), ring->pos[i]);
 	for (uint32_t i = 0; i < pRing->posLength; i++)
 		pRing->pos[i].m32 += deltaZ;
 	return pRing->pos[0].m32;
 }
 
-void draw_ring(const geometry_ring *ring, uint32_t prgIndex)
+void draw_ring(const geometry_ring *pRing, uint32_t prgIndex)
 {
-	for (uint32_t i = 0; i < ring->posLength; i++) {
-		l_UniformMatrix4fv("u_world", &ring->pos[i], prgIndex);
+	for (uint32_t i = 0; i < pRing->posLength; i++) {
+		l_UniformMatrix4fv("u_world", &pRing->pos[i].m00, prgIndex);
 		l_draw_plane();
 	}
 }
