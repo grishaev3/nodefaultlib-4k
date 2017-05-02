@@ -5,7 +5,7 @@
 #define IS_MOVE
 //#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
-//#define IS_STATIC_NORMALS
+//#define IS_DYNAMIC_NORMALS
 #define IS_CAMERA_VIEW_CHANGE
 
 // TODO:
@@ -70,8 +70,8 @@ mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
 float g_radius = 2.6f;
 float g_radiusCoeff = 0.04f;
-const uint32_t g_segCount = 7;		// кол-во блоков в окружности
-const uint32_t g_sqSegCount = 18;
+uint32_t g_segCount = 7;		// кол-во блоков в окружности
+uint32_t g_sqSegCount = 18;
 uint32_t g_maxBlockCount = 18;		// длинна тунеля
 uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
 
@@ -89,9 +89,9 @@ bool on_init()
 
 #ifdef IS_AA
 	gl_framebuffer();
-#endif // IS_AA
+#endif
 
-#ifdef IS_STATIC_NORMALS
+#ifdef IS_DYNAMIC_NORMALS
 	l_calculate_normals();
 #endif
 	l_create_vertex_array();
@@ -119,26 +119,10 @@ bool on_init()
 #endif
 
 	/* TODO: dynamic array https://habrahabr.ru/post/324210/ */
-
 	size_t ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
 	g_rings = (geometry_ring*)l_malloc(ringsSizeInBytes);
-
-	for (uint32_t i = 0; i < g_segCount; i++) {
-		geometry_ring *pRing = &g_rings[i];
-		pRing->blockCount = g_maxBlockCount;
-		pRing->windingCount = g_maxWindingCount;
-		alloc_ring(pRing);
-		generate_ring_winding(-(float)i, g_radius, g_radiusCoeff, pRing);
-	}
-
 	size_t squareSizeInButes = g_segCount * sizeof(geometry_square);
 	g_squares = (geometry_square*)l_malloc(squareSizeInButes);
-	for (uint32_t i = 0; i < g_segCount; i++) {
-		geometry_square *pSquare = &g_squares[i];
-		pSquare->blockCount = g_sqSegCount;
-		alloc_square(pSquare);
-		generate_square(-(float)i, g_radius*1.1375f, pSquare);
-	}
 
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
@@ -147,7 +131,7 @@ bool on_init()
 
 #ifdef IS_AA
 	glEnable(GL_MULTISAMPLE);
-#endif // IS_AA
+#endif
 
 	return true;
 }
@@ -163,7 +147,7 @@ void on_resize(int maxX, int maxY)
 #ifdef IS_AA
 	/* FrameBuffer gen */
 	if (g_isExtensionInit) gl_framebuffer();
-#endif // IS_AA
+#endif
 }
 
 void on_set_camera(uint32_t frameTime)
@@ -221,38 +205,44 @@ void on_set_camera(uint32_t frameTime)
 
 void on_render(uint32_t frameTime)
 {
+	static float currPosZ = (float)(20);
 	//float startFrame = glutGet(GLUT_ELAPSED_TIME);
 	float startFrame = 0;
 
 	// camera fly calculate
 	on_set_camera(frameTime);
 
-#ifdef IS_MOVE	// move camera
 	const float deltaCameraZ = 0.05f;
-	const float limitDestrioyZ = g_maxBlockCount / 3;
+	const float limitDestrioyZ = g_maxBlockCount / 3; //~6.0f
 
 	for (uint32_t i = 0; i < g_segCount; i++) {
 
 		geometry_ring *pRing = &g_rings[i];
 		geometry_square *pSquare = &g_squares[i];
-		float ringPos = move_ring(deltaCameraZ, pRing);
-		float sqPos = move_square(deltaCameraZ, pSquare);
 
-		if (sqPos > limitDestrioyZ) {
+		if (currPosZ > limitDestrioyZ) {
 
 			free_ring(pRing);
 			pRing->blockCount = g_maxBlockCount;
 			pRing->windingCount = g_maxWindingCount;
 			alloc_ring(pRing);
-			generate_ring_winding(-(float)g_segCount, g_radius, g_radiusCoeff, pRing);
+			generate_ring_winding(-(float)i, g_radius, g_radiusCoeff, pRing);
 
 			free_square(pSquare);
 			pSquare->blockCount = g_sqSegCount;
 			alloc_square(pSquare);
-			generate_square(-(float)g_segCount, g_radius * l_randf(1.1375f, 1.275f), pSquare);
+			generate_square(-(float)i, g_radius * l_randf(1.1375f, 1.275f), pSquare);
 		}
 	}
-#endif // IS_MOVE
+
+#ifdef IS_MOVE	// move camera
+	for (size_t i = 0; i < g_segCount; i++)	{
+		currPosZ = move_ring(deltaCameraZ, &g_rings[i]);
+		currPosZ = move_square(deltaCameraZ, &g_squares[i]);
+	}
+#else
+	currPosZ = -1.0f;
+#endif
 
 #ifdef IS_AA
 	// 1. Draw scene as normal in multisampled buffers
@@ -268,19 +258,20 @@ void on_render(uint32_t frameTime)
 	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
 	float lightPos[4] = { 0.0f, 1, -1, 0 };
 	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
-	for (uint32_t i = 0; i < g_segCount; i++)
+	for (uint32_t i = 0; i < g_segCount; i++) {
 		draw_ring(&g_rings[i], LIT_SHD);
-	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_square(&g_squares[i], LIT_SHD);
+	}
+
 
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glUseProgram(g_shadingProgram[WRF_SHD]);
 	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
 	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
-	for (uint32_t i = 0; i < g_segCount; i++)
+	for (uint32_t i = 0; i < g_segCount; i++) {
 		draw_ring(&g_rings[i], WRF_SHD);
-	for (uint32_t i = 0; i < g_segCount; i++)
 		draw_square(&g_squares[i], WRF_SHD);
+	}
 
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers

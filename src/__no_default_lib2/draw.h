@@ -38,7 +38,7 @@ GLuint g_index_buffer_data[] =
 	7,4,3
 };
 
-
+#ifndef IS_DYNAMIC_NORMALS
 vec3_t n_normal_buffer_data[24] = {
 	{0.000000,0.000000,-1.000000},
 	{0.000000,0.000000,-1.000000},
@@ -65,6 +65,9 @@ vec3_t n_normal_buffer_data[24] = {
 	{0.000000,1.000000,0.000000},
 	{0.000000,1.000000,0.000000}
 };
+#else
+vec3_t n_normal_buffer_data[24];
+#endif
 
 void l_create_vertex_array()
 {
@@ -102,7 +105,7 @@ void l_draw_plane()
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-#ifdef IS_STATIC_NORMALS
+#ifdef IS_DYNAMIC_NORMALS
 void l_calculate_normals()
 {
 	for (uint32_t i = 0; i < sizeof(g_index_buffer_data) /
@@ -128,4 +131,4 @@ void l_calculate_normals()
 		vec3_t norm = Vector3.Normalize(dir);*/
 	}
 }
-#endif // !IS_STATIC_NORMALS
+#endif

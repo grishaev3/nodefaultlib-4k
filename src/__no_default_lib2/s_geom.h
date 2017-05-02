@@ -27,6 +27,7 @@ void generate_square(float z, float radius, geometry_square *pSquare)
 	float angle = 0.0f, lengthOfCircum = 2.0f * M_PI*radius;
 	float lengthOfBlock = (lengthOfCircum / (float)pSquare->blockCount)*0.95f;
 	const vec3_t scale = (vec3_t) { 0.125f, lengthOfBlock, 0.2f };
+
 	for (uint32_t i = 0; i < pSquare->blockCount; i++) {
 
 		float s, c; l_sincosf(angle, &s, &c);
@@ -39,7 +40,7 @@ void generate_square(float z, float radius, geometry_square *pSquare)
 		get_transform(&result, &translation, &rotation, &scalem);
 		pSquare->pos[elementIndex] = result;
 
-		elementIndex += 1;
+		elementIndex ++;
 		angle += (2 * M_PI / pSquare->blockCount);
 	}
 

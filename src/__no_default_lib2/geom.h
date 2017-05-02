@@ -27,27 +27,24 @@ void free_ring(geometry_ring *pRing)
 void generate_ring(float z, float radius, float jit, 
 	int windingIndex, geometry_ring *pRing)
 {
-	float s, c;
+	mat4_t result;
 	int elementIndex = pRing->blockCount*windingIndex;
-
+	float angle = 0.0f + jit;
+	float step = (2.0f * M_PI) / pRing->blockCount;
 	const vec3_t scale = (vec3_t) { 0.325f, 0.0625f, 0.5f };
 
-	float angle = 0.0f + jit;
-	float step = 360.0f / pRing->blockCount;
-
-	mat4_t result;
 	for (uint32_t i = 0; i < pRing->blockCount; i++) {
-		float angle_in_rad = angle*Deg2Rad;
-		l_sincosf(angle_in_rad, &s, &c);
+		float s, c; l_sincosf(angle, &s, &c);
 
-		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, z });
-		mat4_t rotation = m4_rotation_z((angle - 90.0f) * Deg2Rad);
+		mat4_t translation = m4_translation((vec3_t) 
+			{ c * radius, s * radius, z });
+		mat4_t rotation = m4_rotation_z((angle - M_PI/2.0f));
 		mat4_t scalem = m4_scaling(scale);
 
 		get_transform(&result, &translation, &rotation,	&scalem);
 		pRing->pos[elementIndex] = result;
 
-		elementIndex += 1;
+		elementIndex ++;
 		angle += step;
 	}
 }

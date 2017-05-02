@@ -311,4 +311,4 @@ bool gl_framebuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return true;
 }
-#endif // IS_AA
+#endif
