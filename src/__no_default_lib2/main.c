@@ -58,22 +58,21 @@ HGLRC g_hRC = NULL;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-uint32_t g_frames_per_second = 60;
 uint32_t g_maxX = 1024 / 3, g_maxY = 640 / 3;
-
-const float g_speed = 1;
-float g_deltaTime;
-float g_cameraAngle;
 
 vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
-float g_radius = 2.6f;
-float g_radiusCoeff = 0.04f;
-uint32_t g_segCount = 7;		// кол-во блоков в окружности
-uint32_t g_sqSegCount = 18;
-uint32_t g_maxBlockCount = 18;		// длинна тунеля
-uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
+const uint32_t g_frames_per_second = 40;
+const float g_scene_duration_in_sec = 1.5f;
+const float g_camera_chg_view_in_sec = 1.5f;
+
+const float g_radius = 2.6f;
+const float g_radiusCoeff = 0.04f;
+const uint32_t g_segCount = 10;
+const uint32_t g_sqSegCount = 16;
+const uint32_t g_maxBlockCount = 16;
+const uint32_t g_maxWindingCount = 6;
 
 geometry_ring *g_rings;
 geometry_square *g_squares;
@@ -150,11 +149,12 @@ void on_resize(int maxX, int maxY)
 #endif
 }
 
-void on_set_camera(uint32_t frameTime)
+void on_set_camera(int32_t frameTime)
 {
 	const int numOfParams = 6;
-	static uint32_t cameraIndex = 0, cameraTimer = 0;
+	static int32_t cameraIndex = 0, cameraTimer = 0;
 
+	// ~108b
 #ifdef	IS_CAMERA_VIEW_CHANGE
 	const int numOfViews = 16;
 	static float g_cvp[] = {
@@ -183,7 +183,7 @@ void on_set_camera(uint32_t frameTime)
 		-0.0f, +4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 	};
 
-	if ((cameraTimer += frameTime) > 3750) {
+	if ((cameraTimer += frameTime) > g_camera_chg_view_in_sec * 1000) {
 		cameraIndex = l_randi(0, numOfViews);
 		cameraTimer = 0;
 	}
@@ -203,17 +203,11 @@ void on_set_camera(uint32_t frameTime)
 	g_view = m4_look_at(g_from, g_to, g_up);
 }
 
-void on_render(uint32_t frameTime)
+void on_render()
 {
-	static float currPosZ = (float)(20);
-	//float startFrame = glutGet(GLUT_ELAPSED_TIME);
-	float startFrame = 0;
-
-	// camera fly calculate
-	on_set_camera(frameTime);
-
-	const float deltaCameraZ = 0.05f;
-	const float limitDestrioyZ = g_maxBlockCount / 3; //~6.0f
+	static float currPosZ = 20.0f; // TODO: ??
+	const float limitDestrioyZ = g_maxBlockCount / 3; // TODO: ??
+	const float deltaCameraZ = g_segCount / (float)(g_frames_per_second * g_scene_duration_in_sec);
 
 	for (uint32_t i = 0; i < g_segCount; i++) {
 
@@ -236,7 +230,7 @@ void on_render(uint32_t frameTime)
 	}
 
 #ifdef IS_MOVE	// move camera
-	for (size_t i = 0; i < g_segCount; i++)	{
+	for (size_t i = 0; i < g_segCount; i++) {
 		currPosZ = move_ring(deltaCameraZ, &g_rings[i]);
 		currPosZ = move_square(deltaCameraZ, &g_squares[i]);
 	}
@@ -263,7 +257,6 @@ void on_render(uint32_t frameTime)
 		draw_square(&g_squares[i], LIT_SHD);
 	}
 
-
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glUseProgram(g_shadingProgram[WRF_SHD]);
 	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
@@ -287,9 +280,6 @@ void on_render(uint32_t frameTime)
 	glVertex3f(1.0f, -1.0f, -1.0f);
 	glEnd();*/
 
-	//glutSwapBuffers();
-	//g_deltaTime = (float)(glutGet(GLUT_ELAPSED_TIME) - startFrame) / 1000.0f;
-	g_deltaTime = (float)(16 - startFrame) / 1000.0f;
 	SwapBuffers(g_hDC);
 }
 
@@ -359,9 +349,8 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 
 	if (!on_init()) return on_exit();
 
-	int32_t sleep_time = 0;
-	int32_t next_game_tick = GetTickCount();
-	const uint32_t SKIP_TICKS = (1000 / g_frames_per_second);
+	const int32_t max_frame_duration_in_msec = 
+		(1000 / g_frames_per_second);
 
 	while (1) {
 		while (PeekMessage(&msg, NULL, 0.0f, 0.0f, PM_REMOVE)) {
@@ -371,13 +360,14 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 		if (msg.message == WM_QUIT)
 			break;
 
-		on_render(SKIP_TICKS);
+		int32_t start_frame = GetTickCount();
+		on_render();
+		int32_t frame_time = GetTickCount() - start_frame;
+		on_set_camera(frame_time);
+		int32_t diff = max_frame_duration_in_msec - frame_time;
 
-		next_game_tick += SKIP_TICKS;
-		sleep_time = next_game_tick - GetTickCount();
-		if (sleep_time >= 0) {
-			Sleep(sleep_time);
-		}
+		if (diff > 0) 
+			Sleep(diff);
 	}
 
 	return on_exit();

@@ -223,7 +223,7 @@ static float v3_angle_between(vec3_t a, vec3_t b) {
 }
 
 /* https://github.com/SneakyBrian/Catmull-Rom-Sample/blob/master/Catmull%E2%80%93Rom-Sample/CatmullRomSpline.cs */
-static vec3_t point_on_curve(
+static void point_on_curve(
 	vec3_t *ret,
 	vec3_t *p0,
 	vec3_t *p1,
@@ -267,6 +267,11 @@ static mat4_t mat4(
 			.m[0][2] = m02, .m[1][2] = m12, .m[2][2] = m22, .m[3][2] = m32,
 			.m[0][3] = m03, .m[1][3] = m13, .m[2][3] = m23, .m[3][3] = m33
 	};
+}
+
+void m4_mul_v3(vec3_t *ret, vec3_t *in, mat4_t *m)
+{
+	// TODO: 
 }
 
 mat4_t m4_identity() {
