@@ -64,12 +64,12 @@ vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
 const uint32_t g_frames_per_second = 40;
-const float g_scene_duration_in_sec = 1.5f;
-const float g_camera_chg_view_in_sec = 1.5f;
+const float g_scene_duration_in_sec = 1.75f*2;
+const float g_camera_chg_view_in_sec = 1.95f;
 
 const float g_radius = 2.6f;
 const float g_radiusCoeff = 0.04f;
-const uint32_t g_segCount = 10;
+const uint32_t g_segCount = 20;
 const uint32_t g_sqSegCount = 16;
 const uint32_t g_maxBlockCount = 16;
 const uint32_t g_maxWindingCount = 6;
@@ -151,12 +151,12 @@ void on_resize(int maxX, int maxY)
 
 void on_set_camera(int32_t frameTime)
 {
-	const int numOfParams = 6;
+	const int32_t numOfParams = 6;
 	static int32_t cameraIndex = 0, cameraTimer = 0;
 
 	// ~108b
 #ifdef	IS_CAMERA_VIEW_CHANGE
-	const int numOfViews = 16;
+	const int32_t numOfViews = 16;
 	static float g_cvp[] = {
 		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
 		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
@@ -183,8 +183,15 @@ void on_set_camera(int32_t frameTime)
 		-0.0f, +4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 	};
 
-	if ((cameraTimer += frameTime) > g_camera_chg_view_in_sec * 1000) {
-		cameraIndex = l_randi(0, numOfViews);
+	if ((cameraTimer += frameTime) >= (int32_t)(g_camera_chg_view_in_sec * 1000)) {
+		while (1) {
+			int32_t newIndex = l_randi(0, numOfViews);
+			if (cameraIndex != newIndex) {
+				cameraIndex = newIndex;
+				break;
+			}
+		}
+
 		cameraTimer = 0;
 	}
 #else
@@ -203,12 +210,19 @@ void on_set_camera(int32_t frameTime)
 	g_view = m4_look_at(g_from, g_to, g_up);
 }
 
-void on_render()
+DWORD on_render()
 {
+	DWORD start_frame = GetTickCount();
+
+	/* http://www.lighthouse3d.com/tutorials/opengl-timer-query/ */
+	//GLint64 timer;
+	//glGetInteger64v(GL_TIMESTAMP, &timer);
+
 	static float currPosZ = 20.0f; // TODO: ??
 	const float limitDestrioyZ = g_maxBlockCount / 3; // TODO: ??
 	const float deltaCameraZ = g_segCount / (float)(g_frames_per_second * g_scene_duration_in_sec);
 
+	/* z: 0..-g_segCount*/
 	for (uint32_t i = 0; i < g_segCount; i++) {
 
 		geometry_ring *pRing = &g_rings[i];
@@ -229,10 +243,10 @@ void on_render()
 		}
 	}
 
-#ifdef IS_MOVE	// move camera
+#ifdef IS_MOVE	// move from -g_segCount -> 0.0f
 	for (size_t i = 0; i < g_segCount; i++) {
-		currPosZ = move_ring(deltaCameraZ, &g_rings[i]);
-		currPosZ = move_square(deltaCameraZ, &g_squares[i]);
+		currPosZ = min(move_ring(deltaCameraZ, &g_rings[i]), 
+			move_square(deltaCameraZ, &g_squares[i]));
 	}
 #else
 	currPosZ = -1.0f;
@@ -280,10 +294,13 @@ void on_render()
 	glVertex3f(1.0f, -1.0f, -1.0f);
 	glEnd();*/
 
+	wglSwapInterval(1);
 	SwapBuffers(g_hDC);
+	glFinish();
+	return GetTickCount() - start_frame;
 }
 
-void init_opengl(void)
+void init_opengl()
 {
 	int pixelFormat;
 
@@ -360,14 +377,11 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 		if (msg.message == WM_QUIT)
 			break;
 
-		int32_t start_frame = GetTickCount();
-		on_render();
-		int32_t frame_time = GetTickCount() - start_frame;
-		on_set_camera(frame_time);
+		DWORD frame_time = on_render();
 		int32_t diff = max_frame_duration_in_msec - frame_time;
 
-		if (diff > 0) 
-			Sleep(diff);
+		if (diff > 0) Sleep(diff);
+		on_set_camera(frame_time + diff);
 	}
 
 	return on_exit();
