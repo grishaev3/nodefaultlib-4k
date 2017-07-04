@@ -28,6 +28,7 @@
 
 #include <windows.h>
 #include <gl/GL.h>
+#include <gl/GLU.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -37,6 +38,7 @@
 #include "geom.h"
 #include "s_geom.h"
 #include "lext.h"
+#include "loglh.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,15 +65,15 @@ uint32_t g_maxX = 1024 / 3, g_maxY = 640 / 3;
 vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
-const uint32_t g_frames_per_second = 40;
-const float g_scene_duration_in_sec = 1.75f*2;
+const uint32_t g_frames_per_second = 60;
+const float g_scene_duration_in_sec = 17.5f * 2;
 const float g_camera_chg_view_in_sec = 1.95f;
 
 const float g_radius = 2.6f;
 const float g_radiusCoeff = 0.04f;
-const uint32_t g_segCount = 20;
-const uint32_t g_sqSegCount = 16;
-const uint32_t g_maxBlockCount = 16;
+const uint32_t g_segCount = 10;
+const uint32_t g_sqSegCount = 12;
+const uint32_t g_maxBlockCount = 12;
 const uint32_t g_maxWindingCount = 6;
 
 geometry_ring *g_rings;
@@ -123,9 +125,9 @@ bool on_init()
 	size_t squareSizeInButes = g_segCount * sizeof(geometry_square);
 	g_squares = (geometry_square*)l_malloc(squareSizeInButes);
 
-	glFrontFace(GL_CCW);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	//glFrontFace(GL_CCW);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
 #ifdef IS_AA
@@ -137,12 +139,17 @@ bool on_init()
 
 void on_resize(int maxX, int maxY)
 {
-	g_maxX = maxX;
-	g_maxY = maxY;
+	g_maxX = maxX;	g_maxY = maxY;
 	glViewport(0.0f, 0.0f, maxX, maxY);
-	g_projection = m4_perspective(90.0f, (float)maxX
-		/ maxY, 0.2f, 20.0f);
 
+	/* 	code optimization ~70b
+		g_projection = m4_perspective(90.0f, (float)maxX / maxY, 0.2f, 20.0f);
+	*/
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluPerspective(90.0f, (float)maxX / maxY, 0.2f, 20.0f);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &g_projection);
+	
 #ifdef IS_AA
 	/* FrameBuffer gen */
 	if (g_isExtensionInit) gl_framebuffer();
@@ -184,7 +191,7 @@ void on_set_camera(int32_t frameTime)
 	};
 
 	if ((cameraTimer += frameTime) >= (int32_t)(g_camera_chg_view_in_sec * 1000)) {
-		while (1) {
+		while (true) {
 			int32_t newIndex = l_randi(0, numOfViews);
 			if (cameraIndex != newIndex) {
 				cameraIndex = newIndex;
@@ -200,14 +207,19 @@ void on_set_camera(int32_t frameTime)
 		-0.0f, +0.0f, -0.0f, -0.0f, -0.0f, -4.5f
 	};
 #endif
-	//g_cameraAngle += g_deltaTime * 10; // ~0.15
-	//float s, c, radius = 0.5f;
-	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
-	//g_to.x = c*radius;	g_to.y = s*radius;
 
 	g_from = vec3fv(&g_cvp[cameraIndex * numOfParams]);
 	g_to = vec3fv(&g_cvp[cameraIndex * numOfParams] + numOfParams / 2);
-	g_view = m4_look_at(g_from, g_to, g_up);
+	/* 	code optimization ~220b
+		g_view = m4_look_at(g_from, g_to, g_up); 
+	*/
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(g_from.x, g_from.y, g_from.z,
+		g_to.x, g_to.y, g_to.z,
+		g_up.x, g_up.y, g_up.z);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &g_view);
 }
 
 DWORD on_render()
@@ -244,8 +256,8 @@ DWORD on_render()
 	}
 
 #ifdef IS_MOVE	// move from -g_segCount -> 0.0f
-	for (size_t i = 0; i < g_segCount; i++) {
-		currPosZ = min(move_ring(deltaCameraZ, &g_rings[i]), 
+	for (uint32_t i = 0; i < g_segCount; i++) {
+		currPosZ = min(move_ring(deltaCameraZ, &g_rings[i]),
 			move_square(deltaCameraZ, &g_squares[i]));
 	}
 #else
@@ -363,10 +375,11 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	if (g_hWnd == NULL) return E_FAIL;
 
 	init_opengl();
+	on_resize(g_maxX, g_maxY);
 
 	if (!on_init()) return on_exit();
 
-	const int32_t max_frame_duration_in_msec = 
+	const int32_t max_frame_duration_in_msec =
 		(1000 / g_frames_per_second);
 
 	while (1) {

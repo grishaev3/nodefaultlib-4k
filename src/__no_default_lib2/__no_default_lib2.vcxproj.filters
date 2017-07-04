@@ -68,5 +68,8 @@
     <ClInclude Include="s_geom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="loglh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

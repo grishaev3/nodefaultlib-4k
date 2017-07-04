@@ -39,7 +39,7 @@ GLuint g_index_buffer_data[] =
 };
 
 #ifndef IS_DYNAMIC_NORMALS
-vec3_t n_normal_buffer_data[24] = {
+float n_normal_buffer_data[24][3] = {
 	{0.000000,0.000000,-1.000000},
 	{0.000000,0.000000,-1.000000},
 	{0.000000,0.000000,-1.000000},
