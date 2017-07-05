@@ -28,12 +28,13 @@ void generate_ring(float z, float radius, float jit,
 	int windingIndex, geometry_ring *pRing)
 {
 	mat4_t result;
-	int elementIndex = pRing->blockCount*windingIndex;
+	uint32_t elementIndex = pRing->blockCount*windingIndex;
 	float angle = 0.0f + jit;
 	float step = (2.0f * M_PI) / pRing->blockCount;
 	const vec3_t scale = (vec3_t) { 0.325f, 0.0625f, 0.5f };
 
 	for (uint32_t i = 0; i < pRing->blockCount; i++) {
+		
 		float s, c; l_sincosf(angle, &s, &c);
 
 		mat4_t translation = m4_translation((vec3_t) 

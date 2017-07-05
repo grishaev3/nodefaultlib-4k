@@ -15,6 +15,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 
+*.ipch
 *.suo
 *.user
 *.opendb

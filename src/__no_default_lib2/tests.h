@@ -4,8 +4,10 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "lmath.h"
+
 
 void write(char * fmtstr, ...)
 {
@@ -28,14 +30,31 @@ void test_trigonometry()
 	FILE *fp = fopen("debug.txt", "w");
 	if (!fp) return;
 
-	fprintf(fp, "sin %d: %f{%f}\n", (int)angle, s, sinf(deginrad));
-	fprintf(fp, "cos %d: %f{%f}\n", (int)angle, c, cosf(deginrad));
-	fprintf(fp, "tan %d: %f{%f}\n", (int)angle, l_tanf(deginrad), tanf(deginrad));
-	fprintf(fp, "sqrt %d: %f{%f}\n", (int)angle, l_sqrtf(deginrad), sqrtf(deginrad));
-	fprintf(fp, "fabs %f: %f{%f}\n", -angle * M_PI, l_absf(-angle * M_PI), fabsf(-angle * M_PI));
+	fprintf_s(fp, "sin %d: %f{%f}\n", (int)angle, s, sin(deginrad));
+	fprintf_s(fp, "cos %d: %f{%f}\n", (int)angle, c, cos(deginrad));
+	fprintf_s(fp, "tan %d: %f{%f}\n", (int)angle, l_tanf(deginrad), tan(deginrad));
+	fprintf_s(fp, "sqrt %d: %f{%f}\n", (int)angle, l_sqrtf(deginrad), sqrt(deginrad));
+	fprintf_s(fp, "fabs %f: %f{%f}\n", -angle * M_PI, l_absf(-angle * M_PI), fabsf(-angle * M_PI));
 
 	fclose(fp);
 }
+
+/*
+void test_trigonometry_sse()
+{
+	v4sf x, s, c;
+	float angle = 42.0f;
+	float deginrad = angle * Deg2Rad;
+
+	x.m128_f32[0] = angle;
+	sincos_ps(x, &s, &c);
+
+	FILE *fp = fopen("debug.txt", "w");
+	if (!fp) return;
+	fprintf(fp, "sin %d: %f{%f}\n", (int)angle, s.m128_f32[0]);
+	fclose(fp);
+}
+*/
 
 int test_random_numbers()
 {

@@ -3,7 +3,7 @@
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
 #define IS_MOVE
-//#define IS_AA
+#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_DYNAMIC_NORMALS
 #define IS_CAMERA_VIEW_CHANGE
@@ -71,10 +71,10 @@ const float g_camera_chg_view_in_sec = 1.95f;
 
 const float g_radius = 2.6f;
 const float g_radiusCoeff = 0.04f;
-const uint32_t g_segCount = 10;
+const uint32_t g_segCount = 20;
 const uint32_t g_sqSegCount = 12;
 const uint32_t g_maxBlockCount = 12;
-const uint32_t g_maxWindingCount = 6;
+const uint32_t g_maxWindingCount = 8;
 
 geometry_ring *g_rings;
 geometry_square *g_squares;
@@ -204,6 +204,7 @@ void on_set_camera(int32_t frameTime)
 #else
 	const int numOfViews = 1;
 	static float g_cvp[] = {
+		// !смещение (позиция) камеры тут
 		-0.0f, +0.0f, -0.0f, -0.0f, -0.0f, -4.5f
 	};
 #endif
@@ -235,11 +236,13 @@ DWORD on_render()
 	const float deltaCameraZ = g_segCount / (float)(g_frames_per_second * g_scene_duration_in_sec);
 
 	/* z: 0..-g_segCount*/
+
 	for (uint32_t i = 0; i < g_segCount; i++) {
 
 		geometry_ring *pRing = &g_rings[i];
 		geometry_square *pSquare = &g_squares[i];
 
+		/* условие_генерации */
 		if (currPosZ > limitDestrioyZ) {
 
 			free_ring(pRing);
@@ -251,7 +254,7 @@ DWORD on_render()
 			free_square(pSquare);
 			pSquare->blockCount = g_sqSegCount;
 			alloc_square(pSquare);
-			generate_square(-(float)i, g_radius * l_randf(1.1375f, 1.275f), pSquare);
+			generate_square(-(float)i - 0.5f, g_radius * l_randf(1.1375f, 1.275f), pSquare);
 		}
 	}
 
@@ -261,7 +264,7 @@ DWORD on_render()
 			move_square(deltaCameraZ, &g_squares[i]));
 	}
 #else
-	currPosZ = -1.0f;
+	currPosZ = 1.0f; // устанавливаем в 1.0f чтобы НЕ выполнилось условие_генерации 
 #endif
 
 #ifdef IS_AA
@@ -378,6 +381,8 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	on_resize(g_maxX, g_maxY);
 
 	if (!on_init()) return on_exit();
+
+	//test_trigonometry();
 
 	const int32_t max_frame_duration_in_msec =
 		(1000 / g_frames_per_second);

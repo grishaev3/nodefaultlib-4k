@@ -37,18 +37,16 @@ float l_randf(float a, float b) {
 	return a + r;
 }
 
+/* https://stackoverflow.com/questions/2683588/what-is-the-fastest-way-to-compute-sin-and-cos-together */
 void l_sincosf(double angle, float* psin, float* pcos)
 {
 	double tsin, tcos;
-
 	__asm {
-		fninit
-		fld qword ptr angle
+		fld qword ptr [angle]
 		fsincos
-		fstp qword ptr tcos
-		fst qword ptr tsin
+		fstp qword ptr [tcos]
+		fstp qword ptr [tsin]
 	}
-
 	*psin = (float)tsin;
 	*pcos = (float)tcos;
 }
@@ -56,29 +54,23 @@ void l_sincosf(double angle, float* psin, float* pcos)
 float l_tanf(double angle)
 {
 	double ttan, one;
-
 	__asm {
-		fninit
-		fld qword ptr angle
+		fld qword ptr [angle]
 		fptan
-		fstp qword ptr one
-		fst qword ptr ttan
+		fstp qword ptr [one]
+		fstp qword ptr [ttan]
 	}
-
 	return (float)ttan;
 }
 
 float l_sqrtf(double value)
 {
 	double result;
-
 	__asm {
-		fninit
-		fld qword ptr value
+		fld qword ptr [value]
 		fsqrt
-		fstp qword ptr result
+		fstp qword ptr [result]
 	}
-
 	return (float)result;
 }
 

@@ -23,7 +23,7 @@ void free_square(geometry_square *pSquare)
 void generate_square(float z, float radius, geometry_square *pSquare)
 {
 	mat4_t result;
-	int elementIndex = 0;
+	uint32_t elementIndex = 0;
 	float angle = 0.0f, lengthOfCircum = 2.0f * M_PI*radius;
 	float lengthOfBlock = (lengthOfCircum / (float)pSquare->blockCount)*0.95f;
 	const vec3_t scale = (vec3_t) { 0.125f, lengthOfBlock, 0.2f };
@@ -33,7 +33,7 @@ void generate_square(float z, float radius, geometry_square *pSquare)
 		float s, c; l_sincosf(angle, &s, &c);
 
 		mat4_t translation = m4_translation((vec3_t) 
-			{ c * radius, s * radius, (float)z - 0.5f });
+			{ c * radius, s * radius, (float)z });
 		mat4_t rotation = m4_rotation_z(angle);
 		mat4_t scalem = m4_scaling(scale);
 
