@@ -199,9 +199,11 @@ void on_set_camera(int32_t frameTime)
 		-0.0f, +4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 	};
 
-	if ((cameraTimer += frameTime) >= (int32_t)(g_camera_chg_view_in_sec * 1000)) {
-		cameraIndex = l_randi(0, numOfViews);
-		cameraTimer = 0;
+	if (!g_isPause) {
+		if ((cameraTimer += frameTime) >= (int32_t)(g_camera_chg_view_in_sec * 1000)) {
+			cameraIndex = l_randi(0, numOfViews);
+			cameraTimer = 0;
+		}
 	}
 	
 #else 
@@ -258,10 +260,11 @@ DWORD on_render()
 	}
 
 #ifdef IS_MOVE	// move from -g_segCount -> 0.0f
-	
-	for (uint32_t i = 0; i < g_segCount; i++) {
-		currPosZ = min(move_ring(deltaCameraZ, &g_rings[i]),
-			move_square(deltaCameraZ, &g_squares[i]));
+	if (!g_isPause) {
+		for (uint32_t i = 0; i < g_segCount; i++) {
+			currPosZ = min(move_ring(deltaCameraZ, &g_rings[i]),
+				move_square(deltaCameraZ, &g_squares[i]));
+		}
 	}
 #else
 	currPosZ = 1.0f; // устанавливаем в 1.0f чтобы НЕ выполнилось условие_генерации 
@@ -273,7 +276,7 @@ DWORD on_render()
 #endif // IS_AA
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
 	// ~34b
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glUseProgram(g_shadingProgram[LIT_SHD]);
