@@ -1,9 +1,11 @@
+/* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
+
 //#pragma comment(linker, "/MERGE:.data=.text")
 //#pragma comment(linker, "/MERGE:.rdata=.text")
 //#pragma comment(linker, "/SECTION:.text,EWR")
 
 #define IS_MOVE
-#define IS_AA
+//#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
 //#define IS_DYNAMIC_NORMALS
 #define IS_CAMERA_VIEW_CHANGE
@@ -23,8 +25,7 @@
 #include <stdlib.h>
 #include "io.h"
 #include "tests.h"
-#else
-#endif // DEBUG
+#endif
 
 #include <windows.h>
 #include <gl/GL.h>
@@ -38,7 +39,6 @@
 #include "geom.h"
 #include "s_geom.h"
 #include "lext.h"
-#include "loglh.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,10 +53,9 @@ extern "C" {
 extern GLenum g_shadingProgram[2];
 extern GLuint g_framebuffer;
 
-/* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
-HWND  g_hWnd = NULL;
-HDC   g_hDC = NULL;
-HGLRC g_hRC = NULL;
+HWND  g_hWnd;
+HDC   g_hDC;
+HGLRC g_hRC;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -66,8 +65,8 @@ vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
 const uint32_t g_frames_per_second = 60;
-const float g_scene_duration_in_sec = 17.5f * 2;
-const float g_camera_chg_view_in_sec = 1.95f;
+const float g_scene_duration_in_sec = 20.0f;
+const float g_camera_chg_view_in_sec = 2.0f;
 
 const float g_radius = 2.6f;
 const float g_radiusCoeff = 0.04f;
@@ -78,6 +77,8 @@ const uint32_t g_maxWindingCount = 8;
 
 geometry_ring *g_rings;
 geometry_square *g_squares;
+
+bool g_isPause = false;
 
 bool on_init()
 {
@@ -90,11 +91,11 @@ bool on_init()
 
 #ifdef IS_AA
 	gl_framebuffer();
-#endif
+#endif // IS_AA
 
 #ifdef IS_DYNAMIC_NORMALS
 	l_calculate_normals();
-#endif
+#endif // IS_DYNAMIC_NORMALS
 	l_create_vertex_array();
 
 #ifdef _DEBUG
@@ -132,7 +133,7 @@ bool on_init()
 
 #ifdef IS_AA
 	glEnable(GL_MULTISAMPLE);
-#endif
+#endif // IS_AA
 
 	return true;
 }
@@ -153,7 +154,7 @@ void on_resize(int maxX, int maxY)
 #ifdef IS_AA
 	/* FrameBuffer gen */
 	if (g_isExtensionInit) gl_framebuffer();
-#endif
+#endif	// IS_AA
 }
 
 void on_set_camera(int32_t frameTime)
@@ -191,30 +192,24 @@ void on_set_camera(int32_t frameTime)
 	};
 
 	if ((cameraTimer += frameTime) >= (int32_t)(g_camera_chg_view_in_sec * 1000)) {
-		while (true) {
-			int32_t newIndex = l_randi(0, numOfViews);
-			if (cameraIndex != newIndex) {
-				cameraIndex = newIndex;
-				break;
-			}
-		}
-
+		cameraIndex = l_randi(0, numOfViews);
 		cameraTimer = 0;
 	}
-#else
+	
+#else 
 	const int numOfViews = 1;
 	static float g_cvp[] = {
 		// !смещение (позици€) камеры тут
 		-0.0f, +0.0f, -0.0f, -0.0f, -0.0f, -4.5f
 	};
-#endif
+#endif // IS_CAMERA_VIEW_CHANGE
 
 	g_from = vec3fv(&g_cvp[cameraIndex * numOfParams]);
 	g_to = vec3fv(&g_cvp[cameraIndex * numOfParams] + numOfParams / 2);
+
 	/* 	code optimization ~220b
 		g_view = m4_look_at(g_from, g_to, g_up); 
 	*/
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(g_from.x, g_from.y, g_from.z,
@@ -225,18 +220,14 @@ void on_set_camera(int32_t frameTime)
 
 DWORD on_render()
 {
-	DWORD start_frame = GetTickCount();
-
 	/* http://www.lighthouse3d.com/tutorials/opengl-timer-query/ */
-	//GLint64 timer;
-	//glGetInteger64v(GL_TIMESTAMP, &timer);
+	DWORD start_frame = GetTickCount();
 
 	static float currPosZ = 20.0f; // TODO: ??
 	const float limitDestrioyZ = g_maxBlockCount / 3; // TODO: ??
 	const float deltaCameraZ = g_segCount / (float)(g_frames_per_second * g_scene_duration_in_sec);
 
 	/* z: 0..-g_segCount*/
-
 	for (uint32_t i = 0; i < g_segCount; i++) {
 
 		geometry_ring *pRing = &g_rings[i];
@@ -259,13 +250,14 @@ DWORD on_render()
 	}
 
 #ifdef IS_MOVE	// move from -g_segCount -> 0.0f
+	
 	for (uint32_t i = 0; i < g_segCount; i++) {
 		currPosZ = min(move_ring(deltaCameraZ, &g_rings[i]),
 			move_square(deltaCameraZ, &g_squares[i]));
 	}
 #else
 	currPosZ = 1.0f; // устанавливаем в 1.0f чтобы Ќ≈ выполнилось условие_генерации 
-#endif
+#endif	// IS_MOVE
 
 #ifdef IS_AA
 	// 1. Draw scene as normal in multisampled buffers
@@ -382,12 +374,10 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 
 	if (!on_init()) return on_exit();
 
-	//test_trigonometry();
-
 	const int32_t max_frame_duration_in_msec =
 		(1000 / g_frames_per_second);
 
-	while (1) {
+	while (true) {
 		while (PeekMessage(&msg, NULL, 0.0f, 0.0f, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -416,6 +406,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		on_resize(LOWORD(lParam), HIWORD(lParam));
 		break;
+#ifdef _DEBUG
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_SPACE:
+			g_isPause = !g_isPause;
+			break;
+		}
+		break;
+#endif
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

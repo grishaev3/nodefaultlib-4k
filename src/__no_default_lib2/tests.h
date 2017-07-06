@@ -1,13 +1,10 @@
 #pragma once
 
-#ifdef _DEBUG
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
 #include "lmath.h"
-
 
 void write(char * fmtstr, ...)
 {
@@ -72,5 +69,3 @@ int test_random_numbers()
 
 	fclose(fp);
 }
-
-#endif // DEBUG#
