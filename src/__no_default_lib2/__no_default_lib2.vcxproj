@@ -28,13 +28,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -87,7 +87,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -97,7 +97,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
@@ -204,7 +204,6 @@ $(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="args.h" />
-    <ClInclude Include="bounding_box.h" />
     <ClInclude Include="draw.h" />
     <ClInclude Include="fhlsl.h" />
     <ClInclude Include="geom.h" />
@@ -213,6 +212,7 @@ $(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..
     <ClInclude Include="lmemory.h" />
     <ClInclude Include="lext.h" />
     <ClInclude Include="math_3d.h" />
+    <ClInclude Include="s_geom.h" />
     <ClInclude Include="tests.h" />
     <ClInclude Include="vhlsl.h" />
     <ClInclude Include="wire_fhlsl.h" />

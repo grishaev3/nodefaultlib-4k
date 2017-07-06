@@ -223,7 +223,7 @@ static float v3_angle_between(vec3_t a, vec3_t b) {
 }
 
 /* https://github.com/SneakyBrian/Catmull-Rom-Sample/blob/master/Catmull%E2%80%93Rom-Sample/CatmullRomSpline.cs */
-static vec3_t point_on_curve(
+static void point_on_curve(
 	vec3_t *ret,
 	vec3_t *p0,
 	vec3_t *p1,
@@ -269,6 +269,11 @@ static mat4_t mat4(
 	};
 }
 
+void m4_mul_v3(vec3_t *ret, vec3_t *in, mat4_t *m)
+{
+	// TODO: 
+}
+
 mat4_t m4_identity() {
 	return mat4(
 		1, 0, 0, 0,
@@ -297,7 +302,7 @@ mat4_t m4_scaling(vec3_t scale) {
 		0, 0, 0, 1
 	);
 }
-/*
+
 mat4_t m4_rotation_x(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);
 	float s, c;
@@ -321,7 +326,6 @@ mat4_t m4_rotation_y(float angle_in_rad) {
 		0, 0, 0, 1
 	);
 }
-*/
 
 mat4_t m4_rotation_z(float angle_in_rad) {
 	//float s = sinf(angle_in_rad), c = cosf(angle_in_rad);

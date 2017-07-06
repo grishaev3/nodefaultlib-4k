@@ -1,3 +1,5 @@
+/* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
+
 //#pragma comment(linker, "/MERGE:.data=.text")
 //#pragma comment(linker, "/MERGE:.rdata=.text")
 //#pragma comment(linker, "/SECTION:.text,EWR")
@@ -5,8 +7,12 @@
 #define IS_MOVE
 //#define IS_AA
 //#define IS_SHOW_SIZE_CAPTION	//+~250b
-//#define IS_STATIC_NORMALS
+//#define IS_DYNAMIC_NORMALS
 #define IS_CAMERA_VIEW_CHANGE
+
+// TODO:
+#define Q_LOW
+#define Q_HI
 
 #define LIT_SHD	0
 #define WRF_SHD	1
@@ -19,11 +25,11 @@
 #include <stdlib.h>
 #include "io.h"
 #include "tests.h"
-#else
-#endif // DEBUG
+#endif
 
 #include <windows.h>
 #include <gl/GL.h>
+#include <gl/GLU.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -31,6 +37,7 @@
 #include "math_3d.h"
 #include "lmath.h"
 #include "geom.h"
+#include "s_geom.h"
 #include "lext.h"
 
 #ifdef __cplusplus
@@ -46,29 +53,32 @@ extern "C" {
 extern GLenum g_shadingProgram[2];
 extern GLuint g_framebuffer;
 
-/* C Coding Standard https://users.ece.cmu.edu/~eno/coding/CCodingStandard.html */
-HWND  g_hWnd = NULL;
-HDC   g_hDC = NULL;
-HGLRC g_hRC = NULL;
+HWND  g_hWnd;
+HDC   g_hDC;
+HGLRC g_hRC;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-uint32_t g_frames_per_second = 60;
 uint32_t g_maxX = 1024 / 3, g_maxY = 640 / 3;
-
-const float g_speed = 1;
-float g_deltaTime;
-float g_cameraAngle;
 
 vec3_t g_from, g_to, g_up;
 mat4_t g_view, g_projection, g_prj_view, g_world_view;
 
-float g_radius = 2.6f;
-float g_radiusCoeff = 0.04f;
-const uint32_t g_segCount = 7;		// кол-во блоков в окружности
-uint32_t g_maxBlockCount = 18;		// длинна тунеля
-uint32_t g_maxWindingCount = 8;		// кол-во слоёв (мотков)
+const uint32_t g_frames_per_second = 60;
+const float g_scene_duration_in_sec = 20.0f;
+const float g_camera_chg_view_in_sec = 2.0f;
+
+const float g_radius = 2.6f;
+const float g_radiusCoeff = 0.04f;
+const uint32_t g_segCount = 20;
+const uint32_t g_sqSegCount = 12;
+const uint32_t g_maxBlockCount = 12;
+const uint32_t g_maxWindingCount = 8;
+
 geometry_ring *g_rings;
+geometry_square *g_squares;
+
+bool g_isPause = false;
 
 bool on_init()
 {
@@ -83,9 +93,9 @@ bool on_init()
 	gl_framebuffer();
 #endif // IS_AA
 
-#ifdef IS_STATIC_NORMALS
+#ifdef IS_DYNAMIC_NORMALS
 	l_calculate_normals();
-#endif
+#endif // IS_DYNAMIC_NORMALS
 	l_create_vertex_array();
 
 #ifdef _DEBUG
@@ -110,24 +120,15 @@ bool on_init()
 	create_shaders(wire_v_hlsl, wire_f_hlsl, WRF_SHD);
 #endif
 
-	// memory usage
-	size_t g_ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
-	size_t geomSizeInBytes = (g_maxBlockCount * g_maxWindingCount * sizeof(mat4_t)) * g_segCount;
-
 	/* TODO: dynamic array https://habrahabr.ru/post/324210/ */
-	g_rings = (geometry_ring*)l_malloc(g_ringsSizeInBytes);
+	size_t ringsSizeInBytes = g_segCount * sizeof(geometry_ring);
+	g_rings = (geometry_ring*)l_malloc(ringsSizeInBytes);
+	size_t squareSizeInButes = g_segCount * sizeof(geometry_square);
+	g_squares = (geometry_square*)l_malloc(squareSizeInButes);
 
-	for (uint32_t i = 0; i < g_segCount; i++) {
-		geometry_ring *pRing = &g_rings[i];
-		pRing->blockCount = g_maxBlockCount;
-		pRing->windingCount = g_maxWindingCount;
-		alloc_ring(pRing);
-		generate_ring_winding(-(float)i, g_radius, g_radiusCoeff, pRing);
-	}
-
-	glFrontFace(GL_CCW);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	//glFrontFace(GL_CCW);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
 #ifdef IS_AA
@@ -139,25 +140,31 @@ bool on_init()
 
 void on_resize(int maxX, int maxY)
 {
-	g_maxX = maxX;
-	g_maxY = maxY;
+	g_maxX = maxX;	g_maxY = maxY;
 	glViewport(0.0f, 0.0f, maxX, maxY);
-	g_projection = m4_perspective(90.0f, (float)maxX
-		/ maxY, 0.2f, 20.0f);
 
+	/* 	code optimization ~70b
+		g_projection = m4_perspective(90.0f, (float)maxX / maxY, 0.2f, 20.0f);
+	*/
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluPerspective(90.0f, (float)maxX / maxY, 0.2f, 20.0f);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &g_projection);
+	
 #ifdef IS_AA
 	/* FrameBuffer gen */
 	if (g_isExtensionInit) gl_framebuffer();
-#endif // IS_AA
+#endif	// IS_AA
 }
 
-void on_set_camera(uint32_t frameTime)
+void on_set_camera(int32_t frameTime)
 {
-	const int numOfParams = 6;
-	static uint32_t cameraIndex = 0, cameraTimer = 0;
+	const int32_t numOfParams = 6;
+	static int32_t cameraIndex = 0, cameraTimer = 0;
 
+	// ~108b
 #ifdef	IS_CAMERA_VIEW_CHANGE
-	const int numOfViews = 16;
+	const int32_t numOfViews = 16;
 	static float g_cvp[] = {
 		/* снизу прямо */
 		-0.0f, -1.25f, -0.0f, -0.0f, -1.25f, -1.0f,
@@ -192,51 +199,73 @@ void on_set_camera(uint32_t frameTime)
 		-0.0f, +4.2f, -0.0f, +0.0f, -0.0f, -1.0f,
 	};
 
-	if ((cameraTimer += frameTime) > 3750) {
+	if ((cameraTimer += frameTime) >= (int32_t)(g_camera_chg_view_in_sec * 1000)) {
 		cameraIndex = l_randi(0, numOfViews);
 		cameraTimer = 0;
 	}
-#else
+	
+#else 
 	const int numOfViews = 1;
 	static float g_cvp[] = {
-		-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -3.0f
+		// !смещение (позиция) камеры тут
+		-0.0f, +0.0f, -0.0f, -0.0f, -0.0f, -4.5f
 	};
-#endif
-	//g_cameraAngle += g_deltaTime * 10; // ~0.15
-	//float s, c, radius = 0.5f;
-	//l_sincosf(g_cameraAngle * Deg2Rad, &s, &c);
-	//g_to.x = c*radius;	g_to.y = s*radius;
+#endif // IS_CAMERA_VIEW_CHANGE
 
 	g_from = vec3fv(&g_cvp[cameraIndex * numOfParams]);
 	g_to = vec3fv(&g_cvp[cameraIndex * numOfParams] + numOfParams / 2);
-	g_view = m4_look_at(g_from, g_to, g_up);
+
+	/* 	code optimization ~220b
+		g_view = m4_look_at(g_from, g_to, g_up); 
+	*/
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(g_from.x, g_from.y, g_from.z,
+		g_to.x, g_to.y, g_to.z,
+		g_up.x, g_up.y, g_up.z);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &g_view);
 }
 
-void on_render(uint32_t frameTime)
+DWORD on_render()
 {
-	//float startFrame = glutGet(GLUT_ELAPSED_TIME);
-	float startFrame = 0;
+	/* http://www.lighthouse3d.com/tutorials/opengl-timer-query/ */
+	DWORD start_frame = GetTickCount();
 
-	// camera fly calculate
-	on_set_camera(frameTime);
+	static float currPosZ = 20.0f; // TODO: ??
+	const float limitDestrioyZ = g_maxBlockCount / 3; // TODO: ??
+	const float deltaCameraZ = g_segCount / (float)(g_frames_per_second * g_scene_duration_in_sec);
 
-#ifdef IS_MOVE	// move camera
-	const float deltaCameraZ = 0.05f;
-	const float limitDestrioyZ = g_maxBlockCount / 3;
-
+	/* z: 0..-g_segCount*/
 	for (uint32_t i = 0; i < g_segCount; i++) {
+
 		geometry_ring *pRing = &g_rings[i];
-		if (move_ring(deltaCameraZ, pRing) > limitDestrioyZ) {
+		geometry_square *pSquare = &g_squares[i];
+
+		/* условие_генерации */
+		if (currPosZ > limitDestrioyZ) {
 
 			free_ring(pRing);
 			pRing->blockCount = g_maxBlockCount;
 			pRing->windingCount = g_maxWindingCount;
 			alloc_ring(pRing);
+			generate_ring_winding(-(float)i, g_radius, g_radiusCoeff, pRing);
 
-			generate_ring_winding(-(float)g_segCount, g_radius, g_radiusCoeff, pRing);
+			free_square(pSquare);
+			pSquare->blockCount = g_sqSegCount;
+			alloc_square(pSquare);
+			generate_square(-(float)i - 0.5f, g_radius * l_randf(1.1375f, 1.275f), pSquare);
 		}
 	}
-#endif // IS_MOVE
+
+#ifdef IS_MOVE	// move from -g_segCount -> 0.0f
+	
+	for (uint32_t i = 0; i < g_segCount; i++) {
+		currPosZ = min(move_ring(deltaCameraZ, &g_rings[i]),
+			move_square(deltaCameraZ, &g_squares[i]));
+	}
+#else
+	currPosZ = 1.0f; // устанавливаем в 1.0f чтобы НЕ выполнилось условие_генерации 
+#endif	// IS_MOVE
 
 #ifdef IS_AA
 	// 1. Draw scene as normal in multisampled buffers
@@ -245,14 +274,6 @@ void on_render(uint32_t frameTime)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/* main draw */
-	glPolygonMode(GL_FRONT, GL_LINE);
-	glUseProgram(g_shadingProgram[WRF_SHD]);
-	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
-	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
-	for (uint32_t i = 0; i < g_segCount; i++)
-		draw_ring(&g_rings[i], WRF_SHD);
-
 	// ~34b
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glUseProgram(g_shadingProgram[LIT_SHD]);
@@ -260,9 +281,19 @@ void on_render(uint32_t frameTime)
 	l_UniformMatrix4fv("u_proj", &g_projection.m, LIT_SHD);
 	float lightPos[4] = { 0.0f, 1, -1, 0 };
 	l_Uniform4fv("u_LightPos", lightPos, LIT_SHD);
-	for (uint32_t i = 0; i < g_segCount; i++)
+	for (uint32_t i = 0; i < g_segCount; i++) {
 		draw_ring(&g_rings[i], LIT_SHD);
+		draw_square(&g_squares[i], LIT_SHD);
+	}
 
+	glPolygonMode(GL_FRONT, GL_LINE);
+	glUseProgram(g_shadingProgram[WRF_SHD]);
+	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
+	l_UniformMatrix4fv("u_proj", &g_projection.m, WRF_SHD);
+	for (uint32_t i = 0; i < g_segCount; i++) {
+		draw_ring(&g_rings[i], WRF_SHD);
+		draw_square(&g_squares[i], WRF_SHD);
+	}
 
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers
@@ -278,13 +309,13 @@ void on_render(uint32_t frameTime)
 	glVertex3f(1.0f, -1.0f, -1.0f);
 	glEnd();*/
 
-	//glutSwapBuffers();
-	//g_deltaTime = (float)(glutGet(GLUT_ELAPSED_TIME) - startFrame) / 1000.0f;
-	g_deltaTime = (float)(16 - startFrame) / 1000.0f;
+	wglSwapInterval(1);
 	SwapBuffers(g_hDC);
+	glFinish();
+	return GetTickCount() - start_frame;
 }
 
-void init_opengl(void)
+void init_opengl()
 {
 	int pixelFormat;
 
@@ -347,14 +378,14 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 	if (g_hWnd == NULL) return E_FAIL;
 
 	init_opengl();
+	on_resize(g_maxX, g_maxY);
 
 	if (!on_init()) return on_exit();
 
-	int32_t sleep_time = 0;
-	int32_t next_game_tick = GetTickCount();
-	const uint32_t SKIP_TICKS = (1000 / g_frames_per_second);
+	const int32_t max_frame_duration_in_msec =
+		(1000 / g_frames_per_second);
 
-	while (1) {
+	while (true) {
 		while (PeekMessage(&msg, NULL, 0.0f, 0.0f, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -362,13 +393,11 @@ int WINAPI WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR
 		if (msg.message == WM_QUIT)
 			break;
 
-		on_render(SKIP_TICKS);
+		DWORD frame_time = on_render();
+		int32_t diff = max_frame_duration_in_msec - frame_time;
 
-		next_game_tick += SKIP_TICKS;
-		sleep_time = next_game_tick - GetTickCount();
-		if (sleep_time >= 0) {
-			Sleep(sleep_time);
-		}
+		if (diff > 0) Sleep(diff);
+		on_set_camera(frame_time + diff);
 	}
 
 	return on_exit();
@@ -385,6 +414,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		on_resize(LOWORD(lParam), HIWORD(lParam));
 		break;
+#ifdef _DEBUG
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_SPACE:
+			g_isPause = !g_isPause;
+			break;
+		}
+		break;
+#endif
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

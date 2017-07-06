@@ -19,35 +19,33 @@ void alloc_ring(geometry_ring *pRing)
 	pRing->pos = (mat4_t*)l_malloc(pRing->posLength * sizeof(mat4_t));
 }
 
-void free_ring(geometry_ring *ring)
+void free_ring(geometry_ring *pRing)
 {
-	l_free(ring->pos);
+	l_free(pRing->pos);
 }
 
 void generate_ring(float z, float radius, float jit, 
 	int windingIndex, geometry_ring *pRing)
 {
-	float s, c;
-	int elementIndex = pRing->blockCount*windingIndex;
-
-	const vec3_t scale = (vec3_t) { 0.65f, 0.125f, 1.0f };
-
-	float angle = 0.0f + jit;
-	float step = 360.0f / pRing->blockCount;
-
 	mat4_t result;
-	for (uint32_t i = 0; i < pRing->blockCount; i++) {
-		const float angle_in_rad = angle*Deg2Rad;
-		l_sincosf(angle_in_rad, &s, &c);
+	uint32_t elementIndex = pRing->blockCount*windingIndex;
+	float angle = 0.0f + jit;
+	float step = (2.0f * M_PI) / pRing->blockCount;
+	const vec3_t scale = (vec3_t) { 0.325f, 0.0625f, 0.5f };
 
-		mat4_t translation = m4_translation((vec3_t) { c * radius, s * radius, z });
-		mat4_t rotation = m4_rotation_z((angle - 90.0f) * Deg2Rad);
+	for (uint32_t i = 0; i < pRing->blockCount; i++) {
+		
+		float s, c; l_sincosf(angle, &s, &c);
+
+		mat4_t translation = m4_translation((vec3_t) 
+			{ c * radius, s * radius, z });
+		mat4_t rotation = m4_rotation_z((angle - M_PI/2.0f));
 		mat4_t scalem = m4_scaling(scale);
 
 		get_transform(&result, &translation, &rotation,	&scalem);
 		pRing->pos[elementIndex] = result;
 
-		elementIndex += 1;
+		elementIndex ++;
 		angle += step;
 	}
 }
@@ -64,16 +62,15 @@ void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ri
 
 float move_ring(float deltaZ, geometry_ring *pRing)
 {
-	//ring->pos[i] = m4_mul(m4_translation((vec3_t) { 0.0f, 0.0f, deltaZ }), ring->pos[i]);
 	for (uint32_t i = 0; i < pRing->posLength; i++)
 		pRing->pos[i].m32 += deltaZ;
 	return pRing->pos[0].m32;
 }
 
-void draw_ring(const geometry_ring *ring, uint32_t prgIndex)
+void draw_ring(const geometry_ring *pRing, uint32_t prgIndex)
 {
-	for (uint32_t i = 0; i < ring->posLength; i++) {
-		l_UniformMatrix4fv("u_world", &ring->pos[i], prgIndex);
+	for (uint32_t i = 0; i < pRing->posLength; i++) {
+		l_UniformMatrix4fv("u_world", &pRing->pos[i].m00, prgIndex);
 		l_draw_plane();
 	}
 }

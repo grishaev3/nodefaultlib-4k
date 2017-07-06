@@ -10,9 +10,9 @@
 #include "fhlsl.h"
 
 #ifdef _DEBUG
-#define NUMFUNCIONES 29
+#define NUMFUNCIONES 31
 #else
-#define NUMFUNCIONES 25
+#define NUMFUNCIONES 27
 #endif
 #include "io.h"
 
@@ -48,12 +48,14 @@ bool check_shader(GLuint shader, char *errorLog);
 
 #define glDeleteFramebuffers				((PFNGLDELETEFRAMEBUFFERSPROC)glf[23])
 #define glDeleteRenderbuffers				((PFNGLDELETERENDERBUFFERSPROC)glf[24])
+#define wglSwapInterval						((PFNWGLSWAPINTERVALEXTPROC)glf[25])
+#define glGetInteger64v						((PFNGLGETINTEGER64VPROC)glf[26])
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[25])
-#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[26])
-#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[27])
-#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[28])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[27])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[28])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[29])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[30])
 #endif
 
 static char *strs[] = {
@@ -85,6 +87,9 @@ static char *strs[] = {
 
 	"glDeleteFramebuffers",
 	"glDeleteRenderbuffers",
+	"wglSwapIntervalEXT",
+	"glGetInteger64v",
+
 	//--
 #ifdef _DEBUG
 	"glGetObjectParameterivARB",
@@ -311,4 +316,4 @@ bool gl_framebuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return true;
 }
-#endif // IS_AA
+#endif
