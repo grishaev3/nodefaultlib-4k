@@ -11,6 +11,8 @@ typedef struct {
 	//segCount=windingCount*blockCount
 	uint32_t blockCount, windingCount, posLength;
 	mat4_t *pos;
+
+	uint32_t  m_vbID, m_ibID, m_nbID;
 } geometry_ring;
 
 void alloc_ring(geometry_ring *pRing)
@@ -22,6 +24,8 @@ void alloc_ring(geometry_ring *pRing)
 void free_ring(geometry_ring *pRing)
 {
 	l_free(pRing->pos);
+
+	l_delete_vertex_array(&pRing->m_vbID, &pRing->m_ibID, &pRing->m_nbID);
 }
 
 void generate_ring(float z, float radius, float jit, 
@@ -58,6 +62,8 @@ void generate_ring_winding(float z, float radius, float raduisCoeff, geometry_ri
 		generate_ring(z, currentRadius, jit, windingIndex, pRing);
 		currentRadius += radius*raduisCoeff;
 	}
+
+	l_create_vertex_array(&pRing->m_vbID, &pRing->m_ibID, &pRing->m_nbID);
 }
 
 float move_ring(float deltaZ, geometry_ring *pRing)
@@ -69,8 +75,11 @@ float move_ring(float deltaZ, geometry_ring *pRing)
 
 void draw_ring(const geometry_ring *pRing, uint32_t prgIndex)
 {
-	for (uint32_t i = 0; i < pRing->posLength; i++) {
+	l_draw_arrays_instanced(pRing->m_vbID, pRing->m_ibID, 
+		pRing->m_nbID, pRing->posLength);
+
+	/*for (uint32_t i = 0; i < pRing->posLength; i++) {
 		l_UniformMatrix4fv("u_world", &pRing->pos[i].m00, prgIndex);
 		l_draw_plane();
-	}
+	}*/
 }

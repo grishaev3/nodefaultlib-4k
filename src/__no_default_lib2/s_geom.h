@@ -8,7 +8,14 @@
 typedef struct {
 	uint32_t blockCount;
 	mat4_t *pos;
+
+	//vec3_t *vbo;
+	//vec3_t *ibo;
+	//vec3_t *nbo;
+
 } geometry_square;
+
+
 
 void alloc_square(geometry_square *pSquare)
 {
@@ -56,7 +63,7 @@ float move_square(float deltaZ, geometry_square *pSquare)
 void draw_square(geometry_square *pSquare, uint32_t prgIndex)
 {
 	for (uint32_t i = 0; i < pSquare->blockCount; i++) {
-		l_UniformMatrix4fv("u_world", &pSquare->pos[i].m00, prgIndex);
-		l_draw_plane();
+		//l_UniformMatrix4fv("u_world", &pSquare->pos[i].m00, prgIndex);
+		//l_draw_plane();
 	}
 }

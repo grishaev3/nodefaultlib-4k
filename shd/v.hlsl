@@ -2,8 +2,9 @@
 
 layout (location = 0) in vec3 a_vertex;
 layout (location = 1) in vec3 a_normal;
+layout (location = 2) in mat4 a_world;
 
-uniform mat4 u_world;
+//uniform mat4 u_world;
 uniform mat4 u_view;
 uniform mat4 u_proj;
 uniform vec3 u_LightPos;
@@ -16,7 +17,7 @@ varying vec3 v_Normal;
 
 void main()
 {
-	mat4 u_MVMatrix = u_view * u_world;
+	mat4 u_MVMatrix = u_view * a_world;
 
 	// Transform the vertex into eye space.
 	v_Position = vec3(u_MVMatrix * vec4(a_vertex, 1.0));
@@ -25,5 +26,5 @@ void main()
 	v_Normal = vec3(u_MVMatrix * vec4(a_normal, 0.0));
 
     // Apply all matrix transformations to vert
-	gl_Position = u_proj * u_view * u_world * vec4(a_vertex, 1.0);
+	gl_Position = u_proj * u_view * a_world * vec4(a_vertex, 1.0);
 }

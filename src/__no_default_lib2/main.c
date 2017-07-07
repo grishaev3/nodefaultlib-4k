@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include "io.h"
 #include "tests.h"
+
+// TODO:
+uint32_t g_MemoryUsageInBytes = 0;
 #endif
 
 #include <windows.h>
@@ -96,7 +99,7 @@ bool on_init()
 #ifdef IS_DYNAMIC_NORMALS
 	l_calculate_normals();
 #endif // IS_DYNAMIC_NORMALS
-	l_create_vertex_array();
+	//l_create_vertex_array();
 
 #ifdef _DEBUG
 	char *vs_source0 = (char*)l_malloc(1024);
@@ -289,6 +292,7 @@ DWORD on_render()
 		draw_square(&g_squares[i], LIT_SHD);
 	}
 
+	/*
 	glPolygonMode(GL_FRONT, GL_LINE);
 	glUseProgram(g_shadingProgram[WRF_SHD]);
 	l_UniformMatrix4fv("u_view", &g_view.m, WRF_SHD);
@@ -297,6 +301,7 @@ DWORD on_render()
 		draw_ring(&g_rings[i], WRF_SHD);
 		draw_square(&g_squares[i], WRF_SHD);
 	}
+	*/
 
 #ifdef IS_AA
 	// 2. Now blit multisampled buffer(s) to default framebuffers

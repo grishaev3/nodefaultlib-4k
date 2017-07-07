@@ -10,9 +10,9 @@
 #include "fhlsl.h"
 
 #ifdef _DEBUG
-#define NUMFUNCIONES 31
+#define NUMFUNCIONES	(33)
 #else
-#define NUMFUNCIONES 27
+#define NUMFUNCIONES	(29)
 #endif
 #include "io.h"
 
@@ -48,14 +48,16 @@ bool check_shader(GLuint shader, char *errorLog);
 
 #define glDeleteFramebuffers				((PFNGLDELETEFRAMEBUFFERSPROC)glf[23])
 #define glDeleteRenderbuffers				((PFNGLDELETERENDERBUFFERSPROC)glf[24])
-#define wglSwapInterval						((PFNWGLSWAPINTERVALEXTPROC)glf[25])
-#define glGetInteger64v						((PFNGLGETINTEGER64VPROC)glf[26])
+#define glDrawElementsInstanced				((PFNGLDRAWELEMENTSINSTANCEDPROC)glf[25])
+#define glDeleteBuffers						((PFNGLDELETEBUFFERSPROC)glf[26])
+#define glVertexAttribDivisor				((PFNGLVERTEXATTRIBDIVISORPROC)glf[27])
+#define wglSwapInterval						((PFNWGLSWAPINTERVALEXTPROC)glf[28])
 
 #ifdef _DEBUG
-#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[27])
-#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[28])
-#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[29])
-#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[30])
+#define oglGetObjectParameteriv				((PFNGLGETOBJECTPARAMETERIVARBPROC)glf[29])
+#define oglGetInfoLog						((PFNGLGETINFOLOGARBPROC)glf[30])
+#define glGetShaderiv						((PFNGLGETSHADERIVPROC)glf[31])
+#define glGetShaderInfoLog					((PFNGLGETSHADERINFOLOGPROC)glf[32])
 #endif
 
 static char *strs[] = {
@@ -87,8 +89,10 @@ static char *strs[] = {
 
 	"glDeleteFramebuffers",
 	"glDeleteRenderbuffers",
+	"glDrawElementsInstanced",
+	"glDeleteBuffers",
+	"glVertexAttribDivisor",
 	"wglSwapIntervalEXT",
-	"glGetInteger64v",
 
 	//--
 #ifdef _DEBUG
