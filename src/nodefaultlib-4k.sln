@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "__no_default_lib2", "__no_default_lib2\__no_default_lib2.vcxproj", "{97607C7D-D318-4DC7-ADC1-5411D6EE48C0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nodefaultlib-4k", "nodefaultlib-4k\nodefaultlib-4k.vcxproj", "{97607C7D-D318-4DC7-ADC1-5411D6EE48C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

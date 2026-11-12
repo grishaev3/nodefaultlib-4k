@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{97607C7D-D318-4DC7-ADC1-5411D6EE48C0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>__no_default_lib2</RootNamespace>
+    <RootNamespace>nodefaultlib-4k</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -171,11 +171,11 @@
       <EntryPointSymbol>WinMainCRTStartup</EntryPointSymbol>
     </Link>
     <PreBuildEvent>
-      <Command>$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\v.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\vhlsl.h
-$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\f.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\fhlsl.h
+      <Command>$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\v.hlsl -o $(ProjectDir)..\..\src\nodefaultlib-4k\vhlsl.h
+$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\f.hlsl -o $(ProjectDir)..\..\src\nodefaultlib-4k\fhlsl.h
 
-$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\wire_v.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\wire_vhlsl.h
-$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\wire_f.hlsl -o $(ProjectDir)..\..\src\__no_default_lib2\wire_fhlsl.h</Command>
+$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\wire_v.hlsl -o $(ProjectDir)..\..\src\nodefaultlib-4k\wire_vhlsl.h
+$(ProjectDir)..\..\mnfr\shader_minifier.exe --preserve-externals $(ProjectDir)..\..\shd\wire_f.hlsl -o $(ProjectDir)..\..\src\nodefaultlib-4k\wire_fhlsl.h</Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>
