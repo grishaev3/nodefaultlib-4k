@@ -1,0 +1,46 @@
+# Legacy Mercurial repository (history migrated to git)
+.hg/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.opendb
+*.db
+*.db-shm
+*.db-wal
+*.ipch
+*.aps
+*.ncb
+*.sdf
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Build artifacts
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.idb
+*.tlog
+*.lastbuildstate
+*.log
+*.lib
+*.exp
+*.sbr
+*.tmp
+*.cache
+*.bak
+
+desktop.ini
+Thumbs.db
