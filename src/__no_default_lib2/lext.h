@@ -2,8 +2,8 @@
 
 #include <windows.h>
 #include <GL/gl.h>
-#include <gl/glext.h>
-#include <gl/wglext.h>
+#include <glext.h>
+#include <wglext.h>
 #include <stdbool.h>
 
 #include "vhlsl.h"
