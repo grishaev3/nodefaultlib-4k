@@ -78,7 +78,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <LinkToolPath>$(ProjectDir)..\..\pkg\crinkler20\</LinkToolPath>
+    <LinkToolPath>$(ProjectDir)..\..\pkg\crinkler30\</LinkToolPath>
     <LinkToolExe>crinkler.exe</LinkToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -166,7 +166,8 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
       <AdditionalOptions>/CRINKLER %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\pkg\gdi32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
       <EntryPointSymbol>WinMainCRTStartup</EntryPointSymbol>
     </Link>
     <PreBuildEvent>
