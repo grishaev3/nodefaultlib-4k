@@ -1,8 +1,19 @@
 #pragma once
 
 #include <Windows.h>
+#include <intrin.h>
 
 HANDLE g_hHeap;
+
+#ifndef _DEBUG
+/* Without the CRT the compiler still emits memset calls for "= { 0 }" initializers. */
+#pragma function(memset)
+void *__cdecl memset(void *dst, int c, size_t count)
+{
+	__stosb((unsigned char*)dst, (unsigned char)c, count);
+	return dst;
+}
+#endif // _DEBUG
 
 LPVOID __fastcall l_memset(LPVOID pvMem, int c, size_t dwBytes)
 {

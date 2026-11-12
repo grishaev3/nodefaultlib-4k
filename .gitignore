@@ -36,6 +36,7 @@ bld/
 *.lastbuildstate
 *.log
 *.lib
+!pkg/gdi32/gdi32.lib
 *.exp
 *.sbr
 *.tmp
